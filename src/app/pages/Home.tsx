@@ -23,7 +23,7 @@ export function Home() {
         <header className="mb-8">
           <div className="flex items-center gap-2 mb-2">
             <BookOpen className="size-8 text-blue-600" />
-            <h1 className="text-3xl font-bold text-gray-900">Learning Log</h1>
+            <h1 className="text-3xl font-bold text-gray-900">ちいさな学び</h1>
           </div>
           <p className="text-gray-600">今日の学びを1分で記録</p>
         </header>
