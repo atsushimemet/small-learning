@@ -6,7 +6,7 @@ export function ProtectedRoute({ children }: PropsWithChildren) {
     <>
       <SignedIn>{children}</SignedIn>
       <SignedOut>
-        <RedirectToSignIn />
+        <RedirectToSignIn signInUrl="/sign-in" />
       </SignedOut>
     </>
   );
