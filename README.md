@@ -8,4 +8,6 @@
   Run `npm i` to install the dependencies.
 
   Run `npm run dev` to start the development server.
-  
+
+  # 1st PRD
+  https://chatgpt.com/share/69a299ea-b634-800e-9dc3-601f923990d1
