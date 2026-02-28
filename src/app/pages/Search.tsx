@@ -4,6 +4,7 @@ import { LogList } from "../components/LogList";
 import { BottomNav } from "../components/BottomNav";
 import { learningLogService, type LearningLog } from "../services/learningLogService";
 import { Search as SearchIcon } from "lucide-react";
+import { UserButton } from "@clerk/clerk-react";
 
 export function Search() {
   const [query, setQuery] = useState("");
@@ -25,10 +26,13 @@ export function Search() {
   return (
     <div className="min-h-screen bg-white pb-20">
       <div className="max-w-2xl mx-auto px-4 py-8">
-        <header className="mb-8">
-          <div className="flex items-center gap-2 mb-2">
-            <SearchIcon className="size-8 text-blue-600" />
-            <h1 className="text-3xl font-bold text-gray-900">検索</h1>
+        <header className="mb-8 space-y-2">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <SearchIcon className="size-8 text-blue-600" />
+              <h1 className="text-3xl font-bold text-gray-900">検索</h1>
+            </div>
+            <UserButton afterSignOutUrl="/sign-in" />
           </div>
           <p className="text-gray-600">過去の学習ログを検索</p>
         </header>

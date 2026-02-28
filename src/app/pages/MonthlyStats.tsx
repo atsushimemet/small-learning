@@ -5,6 +5,7 @@ import { Button } from "../components/ui/button";
 import { BottomNav } from "../components/BottomNav";
 import { learningLogService, type Tag } from "../services/learningLogService";
 import { BarChart3, ChevronLeft, ChevronRight, Calendar } from "lucide-react";
+import { UserButton } from "@clerk/clerk-react";
 import {
   BarChart,
   Bar,
@@ -77,10 +78,13 @@ export function MonthlyStats() {
   return (
     <div className="min-h-screen bg-white pb-20">
       <div className="max-w-2xl mx-auto px-4 py-8">
-        <header className="mb-8">
-          <div className="flex items-center gap-2 mb-2">
-            <BarChart3 className="size-8 text-blue-600" />
-            <h1 className="text-3xl font-bold text-gray-900">月次レポート</h1>
+        <header className="mb-8 space-y-2">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <BarChart3 className="size-8 text-blue-600" />
+              <h1 className="text-3xl font-bold text-gray-900">月次レポート</h1>
+            </div>
+            <UserButton afterSignOutUrl="/sign-in" />
           </div>
           <p className="text-gray-600">学習の進捗を可視化</p>
         </header>
