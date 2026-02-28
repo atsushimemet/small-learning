@@ -4,7 +4,11 @@ import { Textarea } from "./ui/textarea";
 import { Input } from "./ui/input";
 import { Badge } from "./ui/badge";
 import { Card, CardContent } from "./ui/card";
-import { learningLogService, type Tag } from "../services/learningLogService";
+import {
+  useLearningLogService,
+  learningLogServiceHelpers,
+  type Tag,
+} from "../services/learningLogService";
 import { toast } from "sonner";
 import { Plus, X } from "lucide-react";
 
@@ -15,6 +19,8 @@ export function QuickInput({ onLogAdded }: { onLogAdded?: () => void }) {
   const [summary, setSummary] = useState("");
   const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const learningLogService = useLearningLogService();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,7 +44,12 @@ export function QuickInput({ onLogAdded }: { onLogAdded?: () => void }) {
 
     try {
       const today = new Date().toISOString().split("T")[0];
-      learningLogService.addLog({
+      if (!learningLogService) {
+        toast.error("認証情報を取得しています。少し待ってから再度お試しください。");
+        return;
+      }
+
+      await learningLogService.addLog({
         date: today,
         content: content.trim(),
         summary: summary.trim(),
@@ -64,7 +75,7 @@ export function QuickInput({ onLogAdded }: { onLogAdded?: () => void }) {
   };
 
   const handleAutoTag = () => {
-    const suggestedTags = learningLogService.autoTag(content);
+    const suggestedTags = learningLogServiceHelpers.autoTag(content);
     if (suggestedTags.length > 0) {
       setSelectedTags(suggestedTags);
       toast.success(`タグを自動設定しました: ${suggestedTags.join(", ")}`);

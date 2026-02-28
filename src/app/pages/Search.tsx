@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Input } from "../components/ui/input";
 import { LogList } from "../components/LogList";
 import { BottomNav } from "../components/BottomNav";
-import { learningLogService, type LearningLog } from "../services/learningLogService";
+import { useLearningLogService, type LearningLog } from "../services/learningLogService";
 import { Search as SearchIcon } from "lucide-react";
 import { UserButton } from "@clerk/clerk-react";
 
@@ -10,13 +10,16 @@ export function Search() {
   const [query, setQuery] = useState("");
   const [searchResults, setSearchResults] = useState<LearningLog[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
+  const learningLogService = useLearningLogService();
 
-  const handleSearch = (value: string) => {
+  const handleSearch = async (value: string) => {
     setQuery(value);
     if (value.trim()) {
-      const results = learningLogService.searchLogs(value);
-      setSearchResults(results);
-      setHasSearched(true);
+      if (learningLogService) {
+        const results = await learningLogService.searchLogs(value);
+        setSearchResults(results);
+        setHasSearched(true);
+      }
     } else {
       setSearchResults([]);
       setHasSearched(false);
@@ -44,7 +47,9 @@ export function Search() {
               type="search"
               placeholder="キーワードで検索..."
               value={query}
-              onChange={(e) => handleSearch(e.target.value)}
+              onChange={(e) => {
+                void handleSearch(e.target.value);
+              }}
               className="pl-10"
             />
           </div>

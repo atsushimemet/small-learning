@@ -3,7 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
 import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
 import { BottomNav } from "../components/BottomNav";
-import { learningLogService, type Tag } from "../services/learningLogService";
+import {
+  useLearningLogService,
+  type Tag,
+  type MonthlyStats as MonthlyStatsData,
+} from "../services/learningLogService";
 import { BarChart3, ChevronLeft, ChevronRight, Calendar } from "lucide-react";
 import { UserButton } from "@clerk/clerk-react";
 import {
@@ -28,18 +32,23 @@ const TAG_COLORS: Record<Tag, string> = {
 
 export function MonthlyStats() {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [stats, setStats] = useState<any>(null);
-
-  const loadStats = () => {
-    const year = currentDate.getFullYear();
-    const month = currentDate.getMonth();
-    const data = learningLogService.getMonthlyStats(year, month);
-    setStats(data);
-  };
+  const [stats, setStats] = useState<MonthlyStatsData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const learningLogService = useLearningLogService();
 
   useEffect(() => {
-    loadStats();
-  }, [currentDate]);
+    const fetchStats = async () => {
+      if (!learningLogService) return;
+      setIsLoading(true);
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth();
+      const data = await learningLogService.getMonthlyStats(year, month);
+      setStats(data);
+      setIsLoading(false);
+    };
+
+    void fetchStats();
+  }, [currentDate, learningLogService]);
 
   const goToPreviousMonth = () => {
     setCurrentDate(
@@ -122,7 +131,15 @@ export function MonthlyStats() {
           </div>
         </div>
 
-        {!stats || stats.totalLogs === 0 ? (
+        {isLoading ? (
+          <Card className="border-gray-200">
+            <CardContent className="pt-6">
+              <p className="text-center text-sm text-gray-500">
+                データを読み込み中です...
+              </p>
+            </CardContent>
+          </Card>
+        ) : !stats || stats.totalLogs === 0 ? (
           <Card className="border-gray-200">
             <CardContent className="pt-6">
               <p className="text-center text-sm text-gray-500">
