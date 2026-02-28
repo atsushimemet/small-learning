@@ -45,10 +45,6 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error("Supabase environment variables are not configured");
 }
 
-const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: { persistSession: false },
-});
-
 const SUPABASE_JWT_TEMPLATE = "supabase";
 
 const mapRowToLog = (row: LearningLogRow): LearningLog => ({
@@ -71,8 +67,15 @@ const createService = ({ getToken, userId }: ServiceOptions) => {
     if (!token) {
       throw new Error("Supabase access token could not be retrieved");
     }
-    supabaseClient.auth.setAuth(token);
-    return { supabase: supabaseClient, userId };
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      auth: { persistSession: false },
+      global: {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    });
+    return { supabase, userId };
   };
 
   const getAllLogs = async () => {
