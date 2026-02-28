@@ -16,6 +16,8 @@ createRoot(document.getElementById("root")!).render(
     publishableKey={clerkPublishableKey}
     navigate={(to) => router.navigate(to)}
     localization={jaJP}
+    signInUrl="/sign-in"
+    signUpUrl="/sign-up"
   >
     <App />
   </ClerkProvider>
