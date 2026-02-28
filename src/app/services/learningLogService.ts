@@ -1,3 +1,7 @@
+import { useMemo } from "react";
+import { useAuth } from "@clerk/clerk-react";
+import { createClient } from "@supabase/supabase-js";
+
 export type Tag = "英語" | "システム開発" | "PM" | "機械学習";
 
 export interface LearningLog {
@@ -6,7 +10,7 @@ export interface LearningLog {
   content: string;
   summary: string;
   tags: Tag[];
-  createdAt: number;
+  createdAt: string;
 }
 
 export interface WeeklySummary {
@@ -17,59 +21,170 @@ export interface WeeklySummary {
   totalLogs: number;
 }
 
-const STORAGE_KEY = "learning_logs";
+export interface MonthlyStats {
+  totalLogs: number;
+  tagCounts: Record<Tag, number>;
+  dailyCounts: Record<number, number>;
+  logs: LearningLog[];
+}
 
-export const learningLogService = {
-  // Get all logs
-  getAllLogs(): LearningLog[] {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    return stored ? JSON.parse(stored) : [];
-  },
+interface LearningLogRow {
+  id: string;
+  user_id: string;
+  log_date: string;
+  content: string;
+  summary: string | null;
+  tags: Tag[] | null;
+  created_at: string;
+}
 
-  // Add a new log
-  addLog(log: Omit<LearningLog, "id" | "createdAt">): LearningLog {
-    const logs = this.getAllLogs();
-    const newLog: LearningLog = {
-      ...log,
-      id: crypto.randomUUID(),
-      createdAt: Date.now(),
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error("Supabase environment variables are not configured");
+}
+
+const SUPABASE_JWT_TEMPLATE = "supabase";
+
+const mapRowToLog = (row: LearningLogRow): LearningLog => ({
+  id: row.id,
+  date: row.log_date,
+  content: row.content,
+  summary: row.summary ?? "",
+  tags: row.tags ?? [],
+  createdAt: row.created_at,
+});
+
+interface ServiceOptions {
+  getToken: ReturnType<typeof useAuth>["getToken"];
+  userId: string;
+}
+
+const createService = ({ getToken, userId }: ServiceOptions) => {
+  const ensureAuth = async () => {
+    const token = await getToken({ template: SUPABASE_JWT_TEMPLATE });
+    if (!token) {
+      throw new Error("Supabase access token could not be retrieved");
+    }
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      auth: { persistSession: false },
+      global: {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    });
+    return { supabase, userId };
+  };
+
+  const getAllLogs = async () => {
+    const { supabase, userId } = await ensureAuth();
+    const { data, error } = await supabase
+      .from("learning_logs")
+      .select("*")
+      .eq("user_id", userId)
+      .order("log_date", { ascending: false });
+
+    if (error) {
+      throw error;
+    }
+
+    return (data ?? []).map(mapRowToLog);
+  };
+
+  const addLog = async (
+    log: Omit<LearningLog, "id" | "createdAt">
+  ): Promise<LearningLog> => {
+    const { supabase, userId } = await ensureAuth();
+    const payload = {
+      user_id: userId,
+      log_date: log.date,
+      content: log.content,
+      summary: log.summary,
+      tags: log.tags,
     };
-    logs.unshift(newLog);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(logs));
-    return newLog;
-  },
 
-  // Get logs by tag
-  getLogsByTag(tag: Tag): LearningLog[] {
-    return this.getAllLogs().filter((log) => log.tags.includes(tag));
-  },
+    const { data, error } = await supabase
+      .from("learning_logs")
+      .insert(payload)
+      .select()
+      .single();
 
-  // Search logs
-  searchLogs(query: string): LearningLog[] {
-    const lowerQuery = query.toLowerCase();
-    return this.getAllLogs().filter(
-      (log) =>
-        log.content.toLowerCase().includes(lowerQuery) ||
-        log.summary.toLowerCase().includes(lowerQuery)
-    );
-  },
+    if (error || !data) {
+      throw error ?? new Error("学習ログの保存に失敗しました");
+    }
 
-  // Get logs for current week
-  getCurrentWeekLogs(): LearningLog[] {
+    return mapRowToLog(data as LearningLogRow);
+  };
+
+  const getLogsByTag = async (tag: Tag) => {
+    const { supabase, userId } = await ensureAuth();
+    const { data, error } = await supabase
+      .from("learning_logs")
+      .select("*")
+      .eq("user_id", userId)
+      .contains("tags", [tag])
+      .order("log_date", { ascending: false });
+
+    if (error) {
+      throw error;
+    }
+
+    return (data ?? []).map(mapRowToLog);
+  };
+
+  const searchLogs = async (query: string) => {
+    const { supabase, userId } = await ensureAuth();
+    const likeQuery = `%${query}%`;
+    const { data, error } = await supabase
+      .from("learning_logs")
+      .select("*")
+      .eq("user_id", userId)
+      .or(`content.ilike.${likeQuery},summary.ilike.${likeQuery}`)
+      .order("log_date", { ascending: false });
+
+    if (error) {
+      throw error;
+    }
+
+    return (data ?? []).map(mapRowToLog);
+  };
+
+  const getLogsBetween = async (startDate: string, endDate: string) => {
+    const { supabase, userId } = await ensureAuth();
+    const { data, error } = await supabase
+      .from("learning_logs")
+      .select("*")
+      .eq("user_id", userId)
+      .gte("log_date", startDate)
+      .lte("log_date", endDate)
+      .order("log_date", { ascending: false });
+
+    if (error) {
+      throw error;
+    }
+
+    return (data ?? []).map(mapRowToLog);
+  };
+
+  const getCurrentWeekLogs = async () => {
     const now = new Date();
     const weekStart = new Date(now);
     weekStart.setDate(now.getDate() - now.getDay());
     weekStart.setHours(0, 0, 0, 0);
 
-    return this.getAllLogs().filter((log) => {
-      const logDate = new Date(log.date);
-      return logDate >= weekStart;
-    });
-  },
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 6);
 
-  // Generate weekly summary
-  generateWeeklySummary(): WeeklySummary | null {
-    const weekLogs = this.getCurrentWeekLogs();
+    return getLogsBetween(
+      weekStart.toISOString().split("T")[0],
+      weekEnd.toISOString().split("T")[0]
+    );
+  };
+
+  const generateWeeklySummary = async (): Promise<WeeklySummary | null> => {
+    const weekLogs = await getCurrentWeekLogs();
     if (weekLogs.length === 0) return null;
 
     const now = new Date();
@@ -79,14 +194,18 @@ export const learningLogService = {
     const weekEnd = new Date(weekStart);
     weekEnd.setDate(weekStart.getDate() + 6);
 
-    // Extract key points from summaries
     const keyPoints = weekLogs
       .slice(0, 5)
       .map((log) => log.summary)
       .filter(Boolean);
 
-    // Generate unclear areas based on tags with fewer logs
-    const tagCounts: Record<string, number> = {};
+    const tagCounts: Record<Tag, number> = {
+      英語: 0,
+      システム開発: 0,
+      PM: 0,
+      機械学習: 0,
+    };
+
     weekLogs.forEach((log) => {
       log.tags.forEach((tag) => {
         tagCounts[tag] = (tagCounts[tag] || 0) + 1;
@@ -107,14 +226,15 @@ export const learningLogService = {
           : ["順調に学習を進められています！"],
       totalLogs: weekLogs.length,
     };
-  },
+  };
 
-  // Get monthly stats
-  getMonthlyStats(year: number, month: number) {
-    const logs = this.getAllLogs().filter((log) => {
-      const logDate = new Date(log.date);
-      return logDate.getFullYear() === year && logDate.getMonth() === month;
-    });
+  const getMonthlyStats = async (year: number, month: number): Promise<MonthlyStats> => {
+    const monthStart = new Date(year, month, 1);
+    const monthEnd = new Date(year, month + 1, 0);
+    const logs = await getLogsBetween(
+      monthStart.toISOString().split("T")[0],
+      monthEnd.toISOString().split("T")[0]
+    );
 
     const tagCounts: Record<Tag, number> = {
       英語: 0,
@@ -129,7 +249,6 @@ export const learningLogService = {
       });
     });
 
-    // Daily log counts
     const dailyCounts: Record<number, number> = {};
     logs.forEach((log) => {
       const day = new Date(log.date).getDate();
@@ -142,9 +261,31 @@ export const learningLogService = {
       dailyCounts,
       logs,
     };
-  },
+  };
 
-  // Auto-tag based on content (simple keyword matching)
+  return {
+    getAllLogs,
+    addLog,
+    getLogsByTag,
+    searchLogs,
+    getCurrentWeekLogs,
+    generateWeeklySummary,
+    getMonthlyStats,
+  };
+};
+
+export type LearningLogService = ReturnType<typeof createService>;
+
+export function useLearningLogService(): LearningLogService | null {
+  const { getToken, userId } = useAuth();
+
+  return useMemo(() => {
+    if (!userId) return null;
+    return createService({ getToken, userId });
+  }, [getToken, userId]);
+}
+
+export const learningLogServiceHelpers = {
   autoTag(content: string): Tag[] {
     const tags: Tag[] = [];
     const lowerContent = content.toLowerCase();

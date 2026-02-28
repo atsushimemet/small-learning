@@ -1,22 +1,25 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { QuickInput } from "../components/QuickInput";
 import { WeeklySummaryCard } from "../components/WeeklySummaryCard";
 import { LogList } from "../components/LogList";
 import { BottomNav } from "../components/BottomNav";
-import { learningLogService, type LearningLog } from "../services/learningLogService";
+import { useLearningLogService, type LearningLog } from "../services/learningLogService";
 import { BookOpen } from "lucide-react";
 import { UserButton } from "@clerk/clerk-react";
 
 export function Home() {
   const [logs, setLogs] = useState<LearningLog[]>([]);
+  const learningLogService = useLearningLogService();
 
-  const loadLogs = () => {
-    setLogs(learningLogService.getAllLogs());
-  };
+  const loadLogs = useCallback(async () => {
+    if (!learningLogService) return;
+    const data = await learningLogService.getAllLogs();
+    setLogs(data);
+  }, [learningLogService]);
 
   useEffect(() => {
-    loadLogs();
-  }, []);
+    void loadLogs();
+  }, [loadLogs]);
 
   return (
     <div className="min-h-screen bg-white pb-20">

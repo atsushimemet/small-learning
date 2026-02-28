@@ -1,10 +1,44 @@
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { Calendar, TrendingUp, AlertCircle } from "lucide-react";
-import { learningLogService } from "../services/learningLogService";
+import {
+  useLearningLogService,
+  type WeeklySummary,
+} from "../services/learningLogService";
 
 export function WeeklySummaryCard() {
-  const summary = learningLogService.generateWeeklySummary();
+  const [summary, setSummary] = useState<WeeklySummary | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const learningLogService = useLearningLogService();
+
+  useEffect(() => {
+    const fetchSummary = async () => {
+      if (!learningLogService) return;
+      setIsLoading(true);
+      const data = await learningLogService.generateWeeklySummary();
+      setSummary(data);
+      setIsLoading(false);
+    };
+
+    void fetchSummary();
+  }, [learningLogService]);
+
+  if (isLoading) {
+    return (
+      <Card className="border-gray-200">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Calendar className="size-5 text-blue-600" />
+            週次サマリ
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-gray-500">データを読み込み中です...</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (!summary) {
     return (
