@@ -5,9 +5,13 @@
 
   ## Running the code
 
-  Run `npm i` to install the dependencies.
+Run `npm i` to install the dependencies.
 
-  Run `npm run dev` to start the development server.
+## Clerk authentication setup
 
-  # 1st PRD
-  https://chatgpt.com/share/69a299ea-b634-800e-9dc3-601f923990d1
+1. Copy `.env.local.example` to `.env.local` and replace the placeholder value with your Clerk publishable key.
+2. Create a Clerk application via the dashboard and note the publishable key shown in the **API Keys** section.
+3. Run `npm run dev` to start the development server. The app now requires authentication, so you will be redirected to Clerk's sign-in flow before seeing any page content.
+
+# 1st PRD
+https://chatgpt.com/share/69a299ea-b634-800e-9dc3-601f923990d1
