@@ -20,7 +20,7 @@ Run `npm i` to install the dependencies.
    ```sql
    create table if not exists public.learning_logs (
      id uuid primary key default uuid_generate_v4(),
-     user_id uuid not null,
+     user_id text not null,
      log_date date not null,
      content text not null,
      summary text,
@@ -31,11 +31,27 @@ Run `npm i` to install the dependencies.
    alter table public.learning_logs enable row level security;
 
    create policy "Users can manage own logs" on public.learning_logs
-     for all using (auth.uid() = user_id)
-     with check (auth.uid() = user_id);
+     for all using ((auth.jwt()->>'sub') = user_id)
+     with check ((auth.jwt()->>'sub') = user_id);
    ```
-3. Clerkダッシュボードの **JWT Templates** で Supabase 向けテンプレートを作成し、`aud` を `supabase` に設定。
-4. `.env.local` に `VITE_SUPABASE_URL` と `VITE_SUPABASE_ANON_KEY` を追記して値を設定。
+3. ユーザーごとのカスタムタグを保存する `learning_tags` テーブルを追加:
+   ```sql
+   create table if not exists public.learning_tags (
+     id uuid primary key default uuid_generate_v4(),
+     user_id text not null,
+     name text not null,
+     created_at timestamptz not null default now(),
+     unique(user_id, name)
+   );
+
+   alter table public.learning_tags enable row level security;
+
+   create policy "Users can manage own tags" on public.learning_tags
+     for all using ((auth.jwt()->>'sub') = user_id)
+     with check ((auth.jwt()->>'sub') = user_id);
+   ```
+4. Clerkダッシュボードの **JWT Templates** で Supabase 向けテンプレートを作成し、`aud` を `supabase` に設定。
+5. `.env.local` に `VITE_SUPABASE_URL` と `VITE_SUPABASE_ANON_KEY` を追記して値を設定。
 
 # 1st PRD
 https://chatgpt.com/share/69a299ea-b634-800e-9dc3-601f923990d1

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
 import { Input } from "./ui/input";
@@ -6,21 +6,38 @@ import { Badge } from "./ui/badge";
 import { Card, CardContent } from "./ui/card";
 import {
   useLearningLogService,
-  learningLogServiceHelpers,
+  PRESET_TAGS,
   type Tag,
 } from "../services/learningLogService";
 import { toast } from "sonner";
 import { Plus, X } from "lucide-react";
 
-const AVAILABLE_TAGS: Tag[] = ["英語", "システム開発", "PM", "機械学習"];
-
 export function QuickInput({ onLogAdded }: { onLogAdded?: () => void }) {
   const [content, setContent] = useState("");
   const [summary, setSummary] = useState("");
   const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
+  const [customTag, setCustomTag] = useState("");
+  const [availableTags, setAvailableTags] = useState<Tag[]>([...PRESET_TAGS]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const learningLogService = useLearningLogService();
+
+  useEffect(() => {
+    const fetchUserTags = async () => {
+      if (!learningLogService) return;
+      try {
+        const tags = await learningLogService.getUserTags();
+        setAvailableTags((prev) => {
+          const merged = new Set([...prev, ...tags]);
+          return Array.from(merged);
+        });
+      } catch (error) {
+        console.error("Failed to load user tags", error);
+      }
+    };
+
+    void fetchUserTags();
+  }, [learningLogService]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,13 +91,30 @@ export function QuickInput({ onLogAdded }: { onLogAdded?: () => void }) {
     );
   };
 
-  const handleAutoTag = () => {
-    const suggestedTags = learningLogServiceHelpers.autoTag(content);
-    if (suggestedTags.length > 0) {
-      setSelectedTags(suggestedTags);
-      toast.success(`タグを自動設定しました: ${suggestedTags.join(", ")}`);
-    } else {
-      toast.info("関連するタグが見つかりませんでした");
+  const handleAddCustomTag = async () => {
+    const normalized = customTag.trim();
+    if (!normalized) {
+      toast.error("タグ名を入力してください");
+      return;
+    }
+    if (selectedTags.includes(normalized)) {
+      toast.info("同じタグが既に選択されています");
+      setCustomTag("");
+      return;
+    }
+
+    try {
+      await learningLogService.addUserTag(normalized);
+      setAvailableTags((prev) => {
+        const merged = new Set([...prev, normalized]);
+        return Array.from(merged);
+      });
+      setSelectedTags((prev) => [...prev, normalized]);
+      toast.success(`タグ「${normalized}」を追加しました`);
+    } catch (error) {
+      toast.error("タグの追加に失敗しました");
+    } finally {
+      setCustomTag("");
     }
   };
 
@@ -114,22 +148,9 @@ export function QuickInput({ onLogAdded }: { onLogAdded?: () => void }) {
           </div>
 
           <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className="block text-sm text-gray-700">タグ</label>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={handleAutoTag}
-                disabled={!content.trim() || isSubmitting}
-                className="text-xs text-blue-600 hover:text-blue-700"
-              >
-                <Plus className="size-3 mr-1" />
-                自動タグ付け
-              </Button>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {AVAILABLE_TAGS.map((tag) => (
+            <label className="block text-sm text-gray-700 mb-2">タグ</label>
+            <div className="flex gap-2 overflow-x-auto pb-2">
+              {availableTags.map((tag) => (
                 <Badge
                   key={tag}
                   variant={selectedTags.includes(tag) ? "default" : "outline"}
@@ -146,6 +167,25 @@ export function QuickInput({ onLogAdded }: { onLogAdded?: () => void }) {
                   )}
                 </Badge>
               ))}
+            </div>
+            <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
+              <Input
+                value={customTag}
+                onChange={(e) => setCustomTag(e.target.value)}
+                placeholder="カスタムタグを入力"
+                disabled={isSubmitting}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleAddCustomTag}
+                disabled={isSubmitting}
+                className="whitespace-nowrap"
+              >
+                <Plus className="size-3 mr-1" />
+                タグ追加
+              </Button>
             </div>
           </div>
 
