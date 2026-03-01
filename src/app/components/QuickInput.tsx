@@ -47,8 +47,18 @@ export function QuickInput({ onLogAdded }: { onLogAdded?: () => void }) {
       return;
     }
 
+    if (content.trim().length > 140) {
+      toast.error("今日学んだことは140文字以内で入力してください");
+      return;
+    }
+
     if (!summary.trim()) {
       toast.error("一言要約を入力してください");
+      return;
+    }
+
+    if (summary.trim().length > 20) {
+      toast.error("一言要約は20文字以内で入力してください");
       return;
     }
 
@@ -129,9 +139,10 @@ export function QuickInput({ onLogAdded }: { onLogAdded?: () => void }) {
             <Textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              placeholder="今日の学習内容を記録しましょう..."
+              placeholder="今日の学習内容を記録しましょう（140文字以内）"
               className="min-h-[120px] resize-none"
               disabled={isSubmitting}
+              maxLength={160}
             />
           </div>
 
@@ -142,8 +153,9 @@ export function QuickInput({ onLogAdded }: { onLogAdded?: () => void }) {
             <Input
               value={summary}
               onChange={(e) => setSummary(e.target.value)}
-              placeholder="学んだことを一言で"
+              placeholder="学んだことを一言で（20文字以内）"
               disabled={isSubmitting}
+              maxLength={40}
             />
           </div>
 

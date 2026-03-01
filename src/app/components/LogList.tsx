@@ -9,7 +9,11 @@ export function LogList({ logs }: { logs: LearningLog[] }) {
 
   const derivedTags = Array.from(
     new Set(
-      logs
+      [...logs]
+        .sort(
+          (a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        )
         .flatMap((log) => log.tags)
         .filter((tag): tag is Tag => typeof tag === "string" && tag.length > 0)
     )
@@ -17,8 +21,12 @@ export function LogList({ logs }: { logs: LearningLog[] }) {
 
   const filteredLogs =
     selectedFilter === "all"
-      ? logs
+      ? [...logs]
       : logs.filter((log) => log.tags.includes(selectedFilter));
+
+  filteredLogs.sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  );
 
   return (
     <div className="space-y-4">
