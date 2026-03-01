@@ -86,6 +86,7 @@ const createService = ({ getToken, userId }: ServiceOptions) => {
       .from("learning_logs")
       .select("*")
       .eq("user_id", userId)
+      .order("created_at", { ascending: false })
       .order("log_date", { ascending: false });
 
     if (error) {
@@ -127,6 +128,7 @@ const createService = ({ getToken, userId }: ServiceOptions) => {
       .select("*")
       .eq("user_id", userId)
       .contains("tags", [tag])
+      .order("created_at", { ascending: false })
       .order("log_date", { ascending: false });
 
     if (error) {
@@ -144,6 +146,7 @@ const createService = ({ getToken, userId }: ServiceOptions) => {
       .select("*")
       .eq("user_id", userId)
       .or(`content.ilike.${likeQuery},summary.ilike.${likeQuery}`)
+      .order("created_at", { ascending: false })
       .order("log_date", { ascending: false });
 
     if (error) {
@@ -161,6 +164,7 @@ const createService = ({ getToken, userId }: ServiceOptions) => {
       .eq("user_id", userId)
       .gte("log_date", startDate)
       .lte("log_date", endDate)
+      .order("created_at", { ascending: false })
       .order("log_date", { ascending: false });
 
     if (error) {
