@@ -1,13 +1,19 @@
 import { useState } from "react";
 import { Card, CardContent } from "./ui/card";
 import { Badge } from "./ui/badge";
-import { learningLogService, type LearningLog, type Tag } from "../services/learningLogService";
+import { type LearningLog, type Tag } from "../services/learningLogService";
 import { Calendar, BookOpen } from "lucide-react";
-
-const AVAILABLE_TAGS: Tag[] = ["英語", "システム開発", "PM", "機械学習"];
 
 export function LogList({ logs }: { logs: LearningLog[] }) {
   const [selectedFilter, setSelectedFilter] = useState<Tag | "all">("all");
+
+  const derivedTags = Array.from(
+    new Set(
+      logs
+        .flatMap((log) => log.tags)
+        .filter((tag): tag is Tag => typeof tag === "string" && tag.length > 0)
+    )
+  );
 
   const filteredLogs =
     selectedFilter === "all"
@@ -16,7 +22,7 @@ export function LogList({ logs }: { logs: LearningLog[] }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap gap-2">
+      <div className="flex gap-2 overflow-x-auto pb-2">
         <Badge
           variant={selectedFilter === "all" ? "default" : "outline"}
           className={`cursor-pointer transition-all ${
@@ -28,7 +34,7 @@ export function LogList({ logs }: { logs: LearningLog[] }) {
         >
           すべて
         </Badge>
-        {AVAILABLE_TAGS.map((tag) => (
+        {derivedTags.map((tag) => (
           <Badge
             key={tag}
             variant={selectedFilter === tag ? "default" : "outline"}

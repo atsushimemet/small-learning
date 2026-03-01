@@ -2,7 +2,9 @@ import { useMemo } from "react";
 import { useAuth } from "@clerk/clerk-react";
 import { createClient } from "@supabase/supabase-js";
 
-export type Tag = "英語" | "システム開発" | "PM" | "機械学習";
+export const PRESET_TAGS = ["英語", "システム開発", "PM", "機械学習"] as const;
+export type PresetTag = (typeof PRESET_TAGS)[number];
+export type Tag = string;
 
 export interface LearningLog {
   id: string;
@@ -23,7 +25,7 @@ export interface WeeklySummary {
 
 export interface MonthlyStats {
   totalLogs: number;
-  tagCounts: Record<Tag, number>;
+  tagCounts: Record<PresetTag, number>;
   dailyCounts: Record<number, number>;
   logs: LearningLog[];
 }
@@ -199,7 +201,7 @@ const createService = ({ getToken, userId }: ServiceOptions) => {
       .map((log) => log.summary)
       .filter(Boolean);
 
-    const tagCounts: Record<Tag, number> = {
+    const tagCounts: Record<PresetTag, number> = {
       英語: 0,
       システム開発: 0,
       PM: 0,
@@ -208,7 +210,10 @@ const createService = ({ getToken, userId }: ServiceOptions) => {
 
     weekLogs.forEach((log) => {
       log.tags.forEach((tag) => {
-        tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+        if ((PRESET_TAGS as readonly string[]).includes(tag)) {
+          const presetTag = tag as PresetTag;
+          tagCounts[presetTag] = (tagCounts[presetTag] || 0) + 1;
+        }
       });
     });
 
@@ -236,7 +241,7 @@ const createService = ({ getToken, userId }: ServiceOptions) => {
       monthEnd.toISOString().split("T")[0]
     );
 
-    const tagCounts: Record<Tag, number> = {
+    const tagCounts: Record<PresetTag, number> = {
       英語: 0,
       システム開発: 0,
       PM: 0,
@@ -245,7 +250,10 @@ const createService = ({ getToken, userId }: ServiceOptions) => {
 
     logs.forEach((log) => {
       log.tags.forEach((tag) => {
-        tagCounts[tag]++;
+        if ((PRESET_TAGS as readonly string[]).includes(tag)) {
+          const presetTag = tag as PresetTag;
+          tagCounts[presetTag]++;
+        }
       });
     });
 
@@ -263,6 +271,35 @@ const createService = ({ getToken, userId }: ServiceOptions) => {
     };
   };
 
+  const getUserTags = async (): Promise<Tag[]> => {
+    const { supabase, userId } = await ensureAuth();
+    const { data, error } = await supabase
+      .from("learning_tags")
+      .select("name")
+      .eq("user_id", userId)
+      .order("name");
+
+    if (error) throw error;
+
+    return (data ?? []).map((row) => row.name as Tag);
+  };
+
+  const addUserTag = async (name: string): Promise<void> => {
+    const normalized = name.trim();
+    if (!normalized) return;
+    const existingTags = await getUserTags();
+    if (existingTags.includes(normalized)) return;
+
+    const { supabase, userId } = await ensureAuth();
+    const { error } = await supabase.from("learning_tags").insert({
+      user_id: userId,
+      name: normalized,
+    });
+    if (error && error.code !== "23505") {
+      throw error;
+    }
+  };
+
   return {
     getAllLogs,
     addLog,
@@ -271,6 +308,8 @@ const createService = ({ getToken, userId }: ServiceOptions) => {
     getCurrentWeekLogs,
     generateWeeklySummary,
     getMonthlyStats,
+    getUserTags,
+    addUserTag,
   };
 };
 
@@ -284,44 +323,3 @@ export function useLearningLogService(): LearningLogService | null {
     return createService({ getToken, userId });
   }, [getToken, userId]);
 }
-
-export const learningLogServiceHelpers = {
-  autoTag(content: string): Tag[] {
-    const tags: Tag[] = [];
-    const lowerContent = content.toLowerCase();
-
-    const keywords: Record<Tag, string[]> = {
-      英語: ["english", "英語", "toeic", "vocabulary", "grammar", "英会話"],
-      システム開発: [
-        "react",
-        "typescript",
-        "javascript",
-        "開発",
-        "コード",
-        "プログラミング",
-        "api",
-        "database",
-        "git",
-      ],
-      PM: ["プロジェクト", "マネジメント", "pm", "アジャイル", "スクラム", "kpi"],
-      機械学習: [
-        "機械学習",
-        "ml",
-        "ai",
-        "deep learning",
-        "neural network",
-        "python",
-        "tensorflow",
-        "pytorch",
-      ],
-    };
-
-    (Object.keys(keywords) as Tag[]).forEach((tag) => {
-      if (keywords[tag].some((keyword) => lowerContent.includes(keyword))) {
-        tags.push(tag);
-      }
-    });
-
-    return tags;
-  },
-};
