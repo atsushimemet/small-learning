@@ -103,7 +103,9 @@ export function LogList({ logs }: { logs: LearningLog[] }) {
                   <p className="font-medium text-gray-900">{log.summary}</p>
                 </div>
 
-                <p className="text-sm text-gray-700 pl-6">{log.content}</p>
+                <p className="text-sm text-gray-700 pl-6 break-words">
+                  {log.content}
+                </p>
               </CardContent>
             </Card>
           ))}

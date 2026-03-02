@@ -25,7 +25,7 @@ export interface WeeklySummary {
 
 export interface MonthlyStats {
   totalLogs: number;
-  tagCounts: Record<PresetTag, number>;
+  tagCounts: Record<Tag, number>;
   dailyCounts: Record<number, number>;
   logs: LearningLog[];
 }
@@ -48,6 +48,13 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 const SUPABASE_JWT_TEMPLATE = "supabase";
+
+const formatDate = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
 
 const mapRowToLog = (row: LearningLogRow): LearningLog => ({
   id: row.id,
@@ -183,10 +190,7 @@ const createService = ({ getToken, userId }: ServiceOptions) => {
     const weekEnd = new Date(weekStart);
     weekEnd.setDate(weekStart.getDate() + 6);
 
-    return getLogsBetween(
-      weekStart.toISOString().split("T")[0],
-      weekEnd.toISOString().split("T")[0]
-    );
+    return getLogsBetween(formatDate(weekStart), formatDate(weekEnd));
   };
 
   const generateWeeklySummary = async (): Promise<WeeklySummary | null> => {
@@ -226,8 +230,8 @@ const createService = ({ getToken, userId }: ServiceOptions) => {
       .map(([tag]) => `${tag}の学習時間が少ない可能性があります`);
 
     return {
-      weekStart: weekStart.toISOString().split("T")[0],
-      weekEnd: weekEnd.toISOString().split("T")[0],
+      weekStart: formatDate(weekStart),
+      weekEnd: formatDate(weekEnd),
       keyPoints,
       unclearAreas:
         unclearAreas.length > 0
@@ -241,23 +245,14 @@ const createService = ({ getToken, userId }: ServiceOptions) => {
     const monthStart = new Date(year, month, 1);
     const monthEnd = new Date(year, month + 1, 0);
     const logs = await getLogsBetween(
-      monthStart.toISOString().split("T")[0],
-      monthEnd.toISOString().split("T")[0]
+      formatDate(monthStart),
+      formatDate(monthEnd)
     );
 
-    const tagCounts: Record<PresetTag, number> = {
-      英語: 0,
-      システム開発: 0,
-      PM: 0,
-      機械学習: 0,
-    };
-
+    const tagCounts: Record<Tag, number> = {};
     logs.forEach((log) => {
       log.tags.forEach((tag) => {
-        if ((PRESET_TAGS as readonly string[]).includes(tag)) {
-          const presetTag = tag as PresetTag;
-          tagCounts[presetTag]++;
-        }
+        tagCounts[tag] = (tagCounts[tag] ?? 0) + 1;
       });
     });
 

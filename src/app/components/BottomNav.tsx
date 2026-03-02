@@ -8,8 +8,8 @@ export function BottomNav() {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 safe-area-pb">
-      <div className="max-w-2xl mx-auto px-4">
-        <div className="flex items-center justify-around h-16">
+      <div className="max-w-2xl mx-auto px-6">
+        <div className="grid grid-cols-3 items-center h-16">
           <Link
             to="/"
             className={`flex flex-col items-center gap-1 px-4 py-2 rounded-lg transition-colors ${
