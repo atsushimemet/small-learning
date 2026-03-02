@@ -11,8 +11,8 @@ import {
 import { BarChart3, ChevronLeft, ChevronRight, Calendar } from "lucide-react";
 import { UserButton } from "@clerk/clerk-react";
 import {
-  BarChart,
-  Bar,
+  LineChart,
+  Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -23,12 +23,24 @@ import {
   Cell,
 } from "recharts";
 
-const TAG_COLORS: Record<Tag, string> = {
-  英語: "#3b82f6",
-  システム開発: "#10b981",
-  PM: "#f59e0b",
-  機械学習: "#8b5cf6",
-};
+const TAG_COLOR_PALETTE = [
+  "#3b82f6",
+  "#10b981",
+  "#f59e0b",
+  "#8b5cf6",
+  "#ec4899",
+  "#14b8a6",
+  "#f97316",
+  "#6366f1",
+  "#22d3ee",
+  "#a855f7",
+  "#f43f5e",
+  "#0ea5e9",
+  "#84cc16",
+  "#facc15",
+  "#d946ef",
+] as const;
+const DEFAULT_TAG_COLOR = "#94a3b8";
 
 export function MonthlyStats() {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -69,11 +81,22 @@ export function MonthlyStats() {
 
   // Prepare data for charts
   const tagChartData = stats
-    ? Object.entries(stats.tagCounts).map(([tag, count]) => ({
-        name: tag,
-        value: count as number,
-      }))
+    ? Object.entries(stats.tagCounts)
+        .map(([tag, count]) => ({
+          name: tag,
+          value: count as number,
+        }))
+        .sort((a, b) => b.value - a.value)
     : [];
+  const tagColors = tagChartData.reduce<Record<Tag, string>>(
+    (acc, item, index) => {
+      acc[item.name as Tag] =
+        TAG_COLOR_PALETTE[index % TAG_COLOR_PALETTE.length] ||
+        DEFAULT_TAG_COLOR;
+      return acc;
+    },
+    {} as Record<Tag, string>
+  );
 
   const dailyChartData = stats
     ? Object.entries(stats.dailyCounts)
@@ -82,6 +105,7 @@ export function MonthlyStats() {
           count: count as number,
         }))
         .sort((a, b) => a.day - b.day)
+        .slice(-3)
     : [];
 
   return (
@@ -178,16 +202,15 @@ export function MonthlyStats() {
                           cx="50%"
                           cy="50%"
                           outerRadius={80}
-                          label={({ name, value }) =>
-                            value > 0 ? `${name}: ${value}` : ""
-                          }
+                          label={false}
+                          labelLine={false}
+                          startAngle={90}
+                          endAngle={-270}
                         >
                           {tagChartData.map((entry, index) => (
                             <Cell
                               key={`cell-${index}`}
-                              fill={
-                                TAG_COLORS[entry.name as Tag] || "#94a3b8"
-                              }
+                              fill={tagColors[entry.name as Tag] ?? DEFAULT_TAG_COLOR}
                             />
                           ))}
                         </Pie>
@@ -206,7 +229,7 @@ export function MonthlyStats() {
                               className="size-3 rounded-full"
                               style={{
                                 backgroundColor:
-                                  TAG_COLORS[item.name as Tag] || "#94a3b8",
+                                  tagColors[item.name as Tag] ?? DEFAULT_TAG_COLOR,
                               }}
                             />
                             <span className="text-sm text-gray-700">
@@ -227,22 +250,27 @@ export function MonthlyStats() {
             {dailyChartData.length > 0 && (
               <Card className="border-blue-100">
                 <CardHeader>
-                  <CardTitle>日別学習記録数</CardTitle>
+                  <CardTitle>日別学習記録数（直近3日）</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={250}>
-                    <BarChart data={dailyChartData}>
+                    <LineChart data={dailyChartData}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis
                         dataKey="day"
                         label={{ value: "日", position: "insideBottom", offset: -5 }}
                       />
-                      <YAxis />
-                      <Tooltip
-                        formatter={(value) => [`${value}件`, "記録数"]}
+                      <YAxis allowDecimals={false} />
+                      <Tooltip formatter={(value) => [`${value}件`, "記録数"]} />
+                      <Line
+                        type="monotone"
+                        dataKey="count"
+                        stroke="#3b82f6"
+                        strokeWidth={2}
+                        dot={{ r: 4, strokeWidth: 2, fill: "#ffffff" }}
+                        activeDot={{ r: 6 }}
                       />
-                      <Bar dataKey="count" fill="#3b82f6" />
-                    </BarChart>
+                    </LineChart>
                   </ResponsiveContainer>
                 </CardContent>
               </Card>
