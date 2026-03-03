@@ -1,11 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
 import { QuickInput } from "../components/QuickInput";
-import { WeeklySummaryCard } from "../components/WeeklySummaryCard";
 import { LogList } from "../components/LogList";
 import { BottomNav } from "../components/BottomNav";
 import { useLearningLogService, type LearningLog } from "../services/learningLogService";
-import { BookOpen } from "lucide-react";
 import { UserButton } from "@clerk/clerk-react";
+import { BookOpen } from "lucide-react";
 
 export function Home() {
   const [logs, setLogs] = useState<LearningLog[]>([]);
@@ -39,8 +38,6 @@ export function Home() {
 
         <div className="space-y-6">
           <QuickInput onLogAdded={loadLogs} />
-
-          <WeeklySummaryCard />
 
           <div>
             <h2 className="text-xl font-semibold text-gray-900 mb-4">

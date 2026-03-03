@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Badge } from "./ui/badge";
-import { Calendar, TrendingUp, AlertCircle } from "lucide-react";
+import { Calendar, TrendingUp } from "lucide-react";
 import {
   useLearningLogService,
   type WeeklySummary,
@@ -94,20 +94,6 @@ export function WeeklySummaryCard() {
           ) : (
             <p className="text-sm text-gray-500 pl-4">要点がありません</p>
           )}
-        </div>
-
-        <div>
-          <div className="flex items-center gap-2 mb-2">
-            <AlertCircle className="size-4 text-amber-600" />
-            <h4 className="text-sm font-medium">未理解領域・改善点</h4>
-          </div>
-          <ul className="space-y-1">
-            {summary.unclearAreas.map((area, idx) => (
-              <li key={idx} className="text-sm text-gray-700 pl-4">
-                • {area}
-              </li>
-            ))}
-          </ul>
         </div>
 
         <div className="pt-2 border-t border-blue-100">
