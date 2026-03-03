@@ -299,6 +299,10 @@ const createService = ({ getToken, userId }: ServiceOptions) => {
     }
   };
 
+  const getLogsForDate = async (date: string) => {
+    return getLogsBetween(date, date);
+  };
+
   return {
     getAllLogs,
     addLog,
@@ -309,6 +313,7 @@ const createService = ({ getToken, userId }: ServiceOptions) => {
     getMonthlyStats,
     getUserTags,
     addUserTag,
+    getLogsForDate,
   };
 };
 
