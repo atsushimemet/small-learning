@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { type LearningLog, type Tag } from "../services/learningLogService";
@@ -6,6 +6,11 @@ import { Calendar, BookOpen } from "lucide-react";
 
 export function LogList({ logs }: { logs: LearningLog[] }) {
   const [selectedFilter, setSelectedFilter] = useState<Tag | "all">("all");
+
+  useEffect(() => {
+    // 外部から検索結果が更新されたらフィルターをリセットする
+    setSelectedFilter("all");
+  }, [logs]);
 
   const derivedTags = Array.from(
     new Set(
