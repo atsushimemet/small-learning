@@ -11,6 +11,16 @@ import {
 import { Search as SearchIcon } from "lucide-react";
 import { UserButton } from "@clerk/clerk-react";
 
+const tokyoDateFormatter = new Intl.DateTimeFormat("en-CA", {
+  timeZone: "Asia/Tokyo",
+});
+
+const getTokyoYesterdayDateString = () => {
+  const baseDate = new Date();
+  baseDate.setDate(baseDate.getDate() - 1);
+  return tokyoDateFormatter.format(baseDate);
+};
+
 export function Search() {
   const [query, setQuery] = useState("");
   const [searchResults, setSearchResults] = useState<LearningLog[]>([]);
@@ -53,9 +63,7 @@ export function Search() {
     let isMounted = true;
 
     const loadYesterdayLogs = async () => {
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-      const dateStr = yesterday.toISOString().split("T")[0];
+      const dateStr = getTokyoYesterdayDateString();
       try {
         const logs = await learningLogService.getLogsForDate(dateStr);
         if (!isMounted) return;
@@ -113,9 +121,7 @@ export function Search() {
     setSelectedTag(null);
     setQuery("");
     setIsSearching(true);
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    const dateStr = yesterday.toISOString().split("T")[0];
+    const dateStr = getTokyoYesterdayDateString();
     try {
       const results = await learningLogService.getLogsForDate(dateStr);
       setSearchResults(results);
