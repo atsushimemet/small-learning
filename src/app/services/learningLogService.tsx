@@ -43,11 +43,14 @@ interface LearningLogRow {
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error("Supabase environment variables are not configured");
-}
-
 const SUPABASE_JWT_TEMPLATE = "supabase";
+
+const getSupabaseConfig = () => {
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error("Supabase environment variables are not configured");
+  }
+  return { supabaseUrl, supabaseAnonKey } as const;
+};
 
 const formatDate = (date: Date): string => {
   const year = date.getFullYear();
@@ -76,7 +79,8 @@ const createService = ({ getToken, userId }: ServiceOptions) => {
     if (!token) {
       throw new Error("Supabase access token could not be retrieved");
     }
-    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+    const { supabaseUrl: url, supabaseAnonKey: anonKey } = getSupabaseConfig();
+    const supabase = createClient(url, anonKey, {
       auth: { persistSession: false },
       global: {
         headers: {
