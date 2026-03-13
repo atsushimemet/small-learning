@@ -5,6 +5,7 @@ import { MonthlyStats } from "./pages/MonthlyStats";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { SignInPage } from "./pages/SignInPage";
 import { SignUpPage } from "./pages/SignUpPage";
+import { LandingPage } from "./pages/LandingPage";
 
 export const router = createBrowserRouter([
   {
@@ -38,5 +39,9 @@ export const router = createBrowserRouter([
   {
     path: "/sign-up/*",
     element: <SignUpPage />,
+  },
+  {
+    path: "/lp",
+    element: <LandingPage />,
   },
 ]);
