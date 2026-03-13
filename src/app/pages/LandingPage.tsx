@@ -117,19 +117,22 @@ export function LandingPage() {
           <p className="text-sm text-gray-600 sm:text-base">穏やかに学習習慣を取り戻したい方へ。</p>
           <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
             <Link
-              to="/sign-up"
+              to="/trial"
               className="inline-flex items-center justify-center gap-2 rounded-full bg-blue-600 px-6 py-3 text-base font-semibold text-white transition hover:bg-blue-500"
             >
               無料で始める
               <ArrowRight className="size-4" />
             </Link>
             <Link
-              to="/sign-in"
+              to="/sign-up"
               className="inline-flex items-center justify-center gap-2 rounded-full border border-gray-200 px-6 py-3 text-base font-semibold text-gray-700 transition hover:border-gray-300"
             >
-              ログイン
+              アカウント作成
             </Link>
           </div>
+          <p className="text-xs text-gray-500">
+            ログイン不要ですぐに体験できます。ページを離れるとデータは削除されます。
+          </p>
         </section>
       </main>
     </div>

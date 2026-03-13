@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { createContext, useContext, useMemo, type PropsWithChildren } from "react";
 import { useAuth } from "@clerk/clerk-react";
 import { createClient } from "@supabase/supabase-js";
 
@@ -43,11 +43,14 @@ interface LearningLogRow {
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error("Supabase environment variables are not configured");
-}
-
 const SUPABASE_JWT_TEMPLATE = "supabase";
+
+const getSupabaseConfig = () => {
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error("Supabase environment variables are not configured");
+  }
+  return { supabaseUrl, supabaseAnonKey } as const;
+};
 
 const formatDate = (date: Date): string => {
   const year = date.getFullYear();
@@ -76,7 +79,8 @@ const createService = ({ getToken, userId }: ServiceOptions) => {
     if (!token) {
       throw new Error("Supabase access token could not be retrieved");
     }
-    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+    const { supabaseUrl: url, supabaseAnonKey: anonKey } = getSupabaseConfig();
+    const supabase = createClient(url, anonKey, {
       auth: { persistSession: false },
       global: {
         headers: {
@@ -319,11 +323,197 @@ const createService = ({ getToken, userId }: ServiceOptions) => {
 
 export type LearningLogService = ReturnType<typeof createService>;
 
-export function useLearningLogService(): LearningLogService | null {
+const LearningLogServiceContext = createContext<LearningLogService | null>(null);
+
+interface LearningLogServiceProviderProps extends PropsWithChildren {
+  service?: LearningLogService | null;
+}
+
+export function LearningLogServiceProvider({ children, service }: LearningLogServiceProviderProps) {
   const { getToken, userId } = useAuth();
 
-  return useMemo(() => {
+  const authService = useMemo(() => {
     if (!userId) return null;
     return createService({ getToken, userId });
   }, [getToken, userId]);
+
+  const value = service ?? authService;
+
+  return (
+    <LearningLogServiceContext.Provider value={value}>
+      {children}
+    </LearningLogServiceContext.Provider>
+  );
 }
+
+export function useLearningLogService(): LearningLogService | null {
+  return useContext(LearningLogServiceContext);
+}
+
+const generateId = () => {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
+  }
+  return Math.random().toString(36).slice(2);
+};
+
+export const createGuestLearningLogService = (): LearningLogService => {
+  let logs: LearningLog[] = [];
+  const customTags = new Set<Tag>();
+
+  const cloneLogs = (source: LearningLog[]) =>
+    source.map((log) => ({ ...log, tags: [...log.tags] }));
+
+  const sortByCreatedAtDesc = (source: LearningLog[]) =>
+    [...source].sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+
+  const getAllLogs = async () => sortByCreatedAtDesc(cloneLogs(logs));
+
+  const addLog = async (
+    log: Omit<LearningLog, "id" | "createdAt">
+  ): Promise<LearningLog> => {
+    const entry: LearningLog = {
+      ...log,
+      id: generateId(),
+      createdAt: new Date().toISOString(),
+    };
+    logs = [entry, ...logs];
+    return entry;
+  };
+
+  const getLogsBetween = async (startDate: string, endDate: string) => {
+    const filtered = logs.filter(
+      (log) => log.date >= startDate && log.date <= endDate
+    );
+    return sortByCreatedAtDesc(cloneLogs(filtered));
+  };
+
+  const getLogsByTag = async (tag: Tag) => {
+    const filtered = logs.filter((log) => log.tags.includes(tag));
+    return sortByCreatedAtDesc(cloneLogs(filtered));
+  };
+
+  const searchLogs = async (query: string) => {
+    const normalized = query.trim().toLowerCase();
+    const filtered = logs.filter(
+      (log) =>
+        log.content.toLowerCase().includes(normalized) ||
+        log.summary.toLowerCase().includes(normalized)
+    );
+    return sortByCreatedAtDesc(cloneLogs(filtered));
+  };
+
+  const getCurrentWeekLogs = async () => {
+    const now = new Date();
+    const weekStart = new Date(now);
+    weekStart.setDate(now.getDate() - now.getDay());
+    weekStart.setHours(0, 0, 0, 0);
+
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 6);
+
+    return getLogsBetween(formatDate(weekStart), formatDate(weekEnd));
+  };
+
+  const generateWeeklySummary = async (): Promise<WeeklySummary | null> => {
+    const weekLogs = await getCurrentWeekLogs();
+    if (weekLogs.length === 0) return null;
+
+    const now = new Date();
+    const weekStart = new Date(now);
+    weekStart.setDate(now.getDate() - now.getDay());
+
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 6);
+
+    const keyPoints = weekLogs
+      .slice(0, 5)
+      .map((log) => log.summary)
+      .filter(Boolean);
+
+    const tagCounts: Record<PresetTag, number> = {
+      英語: 0,
+      システム開発: 0,
+      PM: 0,
+      機械学習: 0,
+    };
+
+    weekLogs.forEach((log) => {
+      log.tags.forEach((tag) => {
+        if ((PRESET_TAGS as readonly string[]).includes(tag)) {
+          const presetTag = tag as PresetTag;
+          tagCounts[presetTag] = (tagCounts[presetTag] || 0) + 1;
+        }
+      });
+    });
+
+    const unclearAreas = Object.entries(tagCounts)
+      .filter(([_, count]) => count < 2)
+      .map(([tag]) => `${tag}の学習時間が少ない可能性があります`);
+
+    return {
+      weekStart: formatDate(weekStart),
+      weekEnd: formatDate(weekEnd),
+      keyPoints,
+      unclearAreas:
+        unclearAreas.length > 0
+          ? unclearAreas
+          : ["順調に学習を進められています！"],
+      totalLogs: weekLogs.length,
+    };
+  };
+
+  const getMonthlyStats = async (year: number, month: number): Promise<MonthlyStats> => {
+    const monthStart = new Date(year, month, 1);
+    const monthEnd = new Date(year, month + 1, 0);
+    const periodLogs = await getLogsBetween(
+      formatDate(monthStart),
+      formatDate(monthEnd)
+    );
+
+    const tagCounts: Record<Tag, number> = {};
+    periodLogs.forEach((log) => {
+      log.tags.forEach((tag) => {
+        tagCounts[tag] = (tagCounts[tag] ?? 0) + 1;
+      });
+    });
+
+    const dailyCounts: Record<number, number> = {};
+    periodLogs.forEach((log) => {
+      const day = new Date(log.date).getDate();
+      dailyCounts[day] = (dailyCounts[day] || 0) + 1;
+    });
+
+    return {
+      totalLogs: periodLogs.length,
+      tagCounts,
+      dailyCounts,
+      logs: periodLogs,
+    };
+  };
+
+  const getUserTags = async (): Promise<Tag[]> => Array.from(customTags);
+
+  const addUserTag = async (name: string): Promise<void> => {
+    const normalized = name.trim();
+    if (!normalized) return;
+    customTags.add(normalized);
+  };
+
+  const getLogsForDate = async (date: string) => getLogsBetween(date, date);
+
+  return {
+    getAllLogs,
+    addLog,
+    getLogsByTag,
+    searchLogs,
+    getCurrentWeekLogs,
+    generateWeeklySummary,
+    getMonthlyStats,
+    getUserTags,
+    addUserTag,
+    getLogsForDate,
+  };
+};

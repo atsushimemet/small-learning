@@ -6,6 +6,7 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import { SignInPage } from "./pages/SignInPage";
 import { SignUpPage } from "./pages/SignUpPage";
 import { LandingPage } from "./pages/LandingPage";
+import { TrialExperience } from "./pages/TrialExperience";
 
 export const router = createBrowserRouter([
   {
@@ -43,5 +44,9 @@ export const router = createBrowserRouter([
   {
     path: "/lp",
     element: <LandingPage />,
+  },
+  {
+    path: "/trial",
+    element: <TrialExperience />,
   },
 ]);
