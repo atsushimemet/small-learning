@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router";
-import { Menu, X, Wind } from "lucide-react";
+import { Menu, X, Wind, NotepadText } from "lucide-react";
 
 export function HamburgerMenu() {
     const [open, setOpen] = useState(false);
@@ -46,13 +46,20 @@ export function HamburgerMenu() {
                 {open ? <X className="size-5" /> : <Menu className="size-5" />}
             </button>
             {open && (
-                <div className="absolute right-0 mt-3 w-60 rounded-2xl border border-gray-100 bg-white p-3 shadow-2xl">
+                <div className="absolute right-0 mt-3 w-60 space-y-2 rounded-2xl border border-gray-100 bg-white p-3 shadow-2xl">
                     <Link
                         to="/reset"
                         className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm text-gray-700 transition hover:bg-gray-50"
                     >
                         <Wind className="size-4 text-blue-500" />
                         <span className="font-medium text-gray-900">手放すページ</span>
+                    </Link>
+                    <Link
+                        to="/review"
+                        className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm text-gray-700 transition hover:bg-gray-50"
+                    >
+                        <NotepadText className="size-4 text-emerald-500" />
+                        <span className="font-medium text-gray-900">振り返りページ</span>
                     </Link>
                 </div>
             )}
