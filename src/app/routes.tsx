@@ -8,6 +8,7 @@ import { SignUpPage } from "./pages/SignUpPage";
 import { LandingPage } from "./pages/LandingPage";
 import { TrialExperience } from "./pages/TrialExperience";
 import { ResetPage } from "./pages/ResetPage";
+import { ReviewPage } from "./pages/ReviewPage";
 
 export const router = createBrowserRouter([
   {
@@ -53,5 +54,9 @@ export const router = createBrowserRouter([
   {
     path: "/reset",
     element: <ResetPage />,
+  },
+  {
+    path: "/review",
+    element: <ReviewPage />,
   },
 ]);
