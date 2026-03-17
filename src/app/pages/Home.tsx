@@ -2,9 +2,8 @@ import { useState, useEffect, useCallback } from "react";
 import { QuickInput } from "../components/QuickInput";
 import { LogList } from "../components/LogList";
 import { BottomNav } from "../components/BottomNav";
+import { AppHeader } from "../components/AppHeader";
 import { useLearningLogService, type LearningLog } from "../services/learningLogService";
-import { UserButton } from "@clerk/clerk-react";
-import { BookOpen } from "lucide-react";
 
 export function Home() {
   const [logs, setLogs] = useState<LearningLog[]>([]);
@@ -22,19 +21,9 @@ export function Home() {
 
   return (
     <div className="min-h-screen bg-white pb-20">
-      <div className="max-w-2xl mx-auto px-4 py-8">
-        <header className="mb-8 space-y-2">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-              <BookOpen className="size-8 text-blue-600" />
-              <h1 className="text-3xl font-bold text-gray-900">
-                ちいさな学び
-              </h1>
-            </div>
-            <UserButton afterSignOutUrl="/sign-in" />
-          </div>
-          <p className="text-gray-600">今日の学びを1分で記録</p>
-        </header>
+      <AppHeader className="sticky top-0 z-40 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80" />
+      <div className="max-w-2xl mx-auto px-4 py-4">
+        <p className="mb-4 text-sm text-gray-600">今日の学びを1分で記録</p>
 
         <div className="space-y-6">
           <QuickInput onLogAdded={loadLogs} />
