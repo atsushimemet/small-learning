@@ -10,6 +10,7 @@ import { TrialExperience } from "./pages/TrialExperience";
 import { ResetPage } from "./pages/ResetPage";
 import { ReviewPage } from "./pages/ReviewPage";
 import { IfThenPage } from "./pages/IfThenPage";
+import { DeleteAccountPage } from "./pages/DeleteAccountPage";
 
 export const router = createBrowserRouter([
   {
@@ -63,5 +64,13 @@ export const router = createBrowserRouter([
   {
     path: "/ifthen",
     element: <IfThenPage />,
+  },
+  {
+    path: "/delete",
+    element: (
+      <ProtectedRoute>
+        <DeleteAccountPage />
+      </ProtectedRoute>
+    ),
   },
 ]);
