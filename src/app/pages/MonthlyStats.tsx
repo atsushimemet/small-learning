@@ -3,13 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
 import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
 import { BottomNav } from "../components/BottomNav";
+import { AppHeader } from "../components/AppHeader";
 import {
   useLearningLogService,
   type Tag,
   type MonthlyStats as MonthlyStatsData,
 } from "../services/learningLogService";
 import { BarChart3, ChevronLeft, ChevronRight, Calendar } from "lucide-react";
-import { UserButton } from "@clerk/clerk-react";
 import {
   LineChart,
   Line,
@@ -110,17 +110,15 @@ export function MonthlyStats() {
 
   return (
     <div className="min-h-screen bg-white pb-20">
+      <AppHeader className="sticky top-0 z-40 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80" />
       <div className="max-w-2xl mx-auto px-4 py-8">
-        <header className="mb-8 space-y-2">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-              <BarChart3 className="size-8 text-blue-600" />
-              <h1 className="text-3xl font-bold text-gray-900">月次レポート</h1>
-            </div>
-            <UserButton afterSignOutUrl="/sign-in" />
+        <div className="mb-8 space-y-3">
+          <div className="flex flex-wrap items-center gap-2 text-base text-gray-900">
+            <BarChart3 className="size-4 text-blue-600" />
+            <span className="font-semibold">月次レポート</span>
+            <span className="text-gray-500">学習の進捗を可視化</span>
           </div>
-          <p className="text-gray-600">学習の進捗を可視化</p>
-        </header>
+        </div>
 
         <div className="mb-6">
           <div className="flex items-center justify-between gap-4">
