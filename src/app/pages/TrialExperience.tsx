@@ -9,6 +9,7 @@ import {
   useLearningLogService,
   type LearningLog,
 } from "../services/learningLogService";
+import { useScrollToTop } from "../hooks/useScrollToTop";
 
 function TrialExperienceContent() {
   const [logs, setLogs] = useState<LearningLog[]>([]);
@@ -83,9 +84,7 @@ function TrialExperienceContent() {
 
 export function TrialExperience() {
   const guestService = useMemo(() => createGuestLearningLogService(), []);
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
+  useScrollToTop();
 
   return (
     <LearningLogServiceProvider service={guestService}>

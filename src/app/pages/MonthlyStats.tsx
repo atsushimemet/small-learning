@@ -4,6 +4,7 @@ import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
 import { BottomNav } from "../components/BottomNav";
 import { AppHeader } from "../components/AppHeader";
+import { useScrollToTop } from "../hooks/useScrollToTop";
 import {
   useLearningLogService,
   type Tag,
@@ -61,6 +62,7 @@ export function MonthlyStats() {
 
     void fetchStats();
   }, [currentDate, learningLogService]);
+  useScrollToTop();
 
   const goToPreviousMonth = () => {
     setCurrentDate(
