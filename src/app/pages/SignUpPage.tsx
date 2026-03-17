@@ -7,7 +7,8 @@ export function SignUpPage() {
         routing="path"
         path="/sign-up"
         signInUrl="/sign-in"
-        fallbackRedirectUrl="/"
+        afterSignUpUrl="/ifthen"
+        fallbackRedirectUrl="/ifthen"
       />
     </div>
   );

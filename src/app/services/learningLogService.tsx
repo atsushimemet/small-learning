@@ -307,6 +307,45 @@ const createService = ({ getToken, userId }: ServiceOptions) => {
     return getLogsBetween(date, date);
   };
 
+  const saveLearningTrigger = async ({
+    triggerType,
+    triggerValue,
+  }: {
+    triggerType: "preset" | "custom";
+    triggerValue: string;
+  }) => {
+    const { supabase, userId } = await ensureAuth();
+    const { error } = await supabase
+      .from("learning_triggers")
+      .upsert(
+        {
+          user_id: userId,
+          trigger_type: triggerType,
+          trigger_value: triggerValue,
+        },
+        { onConflict: "user_id" }
+      );
+    if (error) throw error;
+  };
+
+  const getLearningTrigger = async (): Promise<{
+    triggerType: "preset" | "custom";
+    triggerValue: string;
+  } | null> => {
+    const { supabase, userId } = await ensureAuth();
+    const { data, error } = await supabase
+      .from("learning_triggers")
+      .select("trigger_type, trigger_value")
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (error) throw error;
+    if (!data) return null;
+    return {
+      triggerType: data.trigger_type as "preset" | "custom",
+      triggerValue: data.trigger_value,
+    };
+  };
+
   return {
     getAllLogs,
     addLog,
@@ -318,6 +357,8 @@ const createService = ({ getToken, userId }: ServiceOptions) => {
     getUserTags,
     addUserTag,
     getLogsForDate,
+    saveLearningTrigger,
+    getLearningTrigger,
   };
 };
 
@@ -504,6 +545,18 @@ export const createGuestLearningLogService = (): LearningLogService => {
 
   const getLogsForDate = async (date: string) => getLogsBetween(date, date);
 
+  const saveLearningTrigger = async ({
+    triggerType,
+    triggerValue,
+  }: {
+    triggerType: "preset" | "custom";
+    triggerValue: string;
+  }) => {
+    console.log("Guest trigger", { triggerType, triggerValue });
+  };
+
+  const getLearningTrigger = async () => null;
+
   return {
     getAllLogs,
     addLog,
@@ -515,5 +568,7 @@ export const createGuestLearningLogService = (): LearningLogService => {
     getUserTags,
     addUserTag,
     getLogsForDate,
+    saveLearningTrigger,
+    getLearningTrigger,
   };
 };
