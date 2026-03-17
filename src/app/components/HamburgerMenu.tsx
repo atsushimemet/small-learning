@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router";
-import { Menu, X, Wind, NotepadText } from "lucide-react";
+import { Menu, X, Wind, NotepadText, Repeat } from "lucide-react";
 
 export function HamburgerMenu() {
     const [open, setOpen] = useState(false);
@@ -60,6 +60,13 @@ export function HamburgerMenu() {
                     >
                         <NotepadText className="size-4 text-emerald-500" />
                         <span className="font-medium text-gray-900">振り返りページ</span>
+                    </Link>
+                    <Link
+                        to="/ifthen"
+                        className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm text-gray-700 transition hover:bg-gray-50"
+                    >
+                        <Repeat className="size-4 text-purple-500" />
+                        <span className="font-medium text-gray-900">習慣トリガーを決める</span>
                     </Link>
                 </div>
             )}

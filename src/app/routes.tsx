@@ -9,6 +9,7 @@ import { LandingPage } from "./pages/LandingPage";
 import { TrialExperience } from "./pages/TrialExperience";
 import { ResetPage } from "./pages/ResetPage";
 import { ReviewPage } from "./pages/ReviewPage";
+import { IfThenPage } from "./pages/IfThenPage";
 
 export const router = createBrowserRouter([
   {
@@ -58,5 +59,9 @@ export const router = createBrowserRouter([
   {
     path: "/review",
     element: <ReviewPage />,
+  },
+  {
+    path: "/ifthen",
+    element: <IfThenPage />,
   },
 ]);
