@@ -17,7 +17,18 @@ export function AppHeader({ className = "" }: AppHeaderProps) {
         </Link>
         <div className="flex items-center gap-3">
           <HamburgerMenu />
-          <UserButton afterSignOutUrl="/sign-in" />
+          <UserButton
+            afterSignOutUrl="/sign-in"
+            userProfileProps={{
+              appearance: {
+                elements: {
+                  deleteUserButton: { display: "none" },
+                  profileSection__danger: { display: "none" },
+                  profileSectionPrimaryButton__danger: { display: "none" },
+                },
+              },
+            }}
+          />
         </div>
       </div>
     </header>
