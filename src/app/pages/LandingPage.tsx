@@ -1,7 +1,9 @@
 import { Link } from "react-router";
 import { ArrowRight } from "lucide-react";
+import { useScrollToTop } from "../hooks/useScrollToTop";
 
 export function LandingPage() {
+  useScrollToTop();
   return (
     <div className="flex min-h-screen flex-col bg-white text-gray-900">
       <main className="flex flex-1 items-center justify-center px-4 py-16 sm:px-6 sm:py-24">

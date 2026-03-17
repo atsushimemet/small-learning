@@ -4,6 +4,7 @@ import { LogList } from "../components/LogList";
 import { BottomNav } from "../components/BottomNav";
 import { AppHeader } from "../components/AppHeader";
 import { useLearningLogService, type LearningLog } from "../services/learningLogService";
+import { useScrollToTop } from "../hooks/useScrollToTop";
 
 export function Home() {
   const [logs, setLogs] = useState<LearningLog[]>([]);
@@ -18,6 +19,7 @@ export function Home() {
   useEffect(() => {
     void loadLogs();
   }, [loadLogs]);
+  useScrollToTop();
 
   return (
     <div className="min-h-screen bg-white pb-20">

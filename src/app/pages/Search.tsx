@@ -3,6 +3,7 @@ import { Input } from "../components/ui/input";
 import { LogList } from "../components/LogList";
 import { BottomNav } from "../components/BottomNav";
 import { AppHeader } from "../components/AppHeader";
+import { useScrollToTop } from "../hooks/useScrollToTop";
 import {
   useLearningLogService,
   type LearningLog,
@@ -22,6 +23,7 @@ const getTokyoYesterdayDateString = () => {
 };
 
 export function Search() {
+  useScrollToTop();
   const [query, setQuery] = useState("");
   const [searchResults, setSearchResults] = useState<LearningLog[]>([]);
   const [hasSearched, setHasSearched] = useState(false);

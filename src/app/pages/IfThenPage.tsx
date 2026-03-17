@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { AppHeader } from "../components/AppHeader";
 import { useLearningLogService } from "../services/learningLogService";
 import { useNavigate } from "react-router";
+import { useScrollToTop } from "../hooks/useScrollToTop";
 
 type TriggerOption = {
   id: string;
@@ -21,6 +22,7 @@ export function IfThenPage() {
   const [saving, setSaving] = useState(false);
   const learningLogService = useLearningLogService();
   const navigate = useNavigate();
+  useScrollToTop();
 
   const isCustom = selectedPreset === "custom";
   const selectedLabel =
@@ -43,6 +45,7 @@ export function IfThenPage() {
         triggerType: isCustom ? "custom" : "preset",
         triggerValue: selectedLabel,
       });
+      window.scrollTo({ top: 0, behavior: "auto" });
       navigate("/", { replace: true });
     } catch (error) {
       console.error(error);
@@ -53,6 +56,7 @@ export function IfThenPage() {
   };
 
   const handleSkip = () => {
+    window.scrollTo({ top: 0, behavior: "auto" });
     navigate("/", { replace: true });
   };
   const hasChanges =
@@ -126,19 +130,16 @@ export function IfThenPage() {
 
         <section className="space-y-3">
           <p className="text-sm font-semibold text-gray-500">別のトリガーを入力</p>
-          <div className="rounded-2xl border border-gray-200 p-4">
-            <label className="text-sm text-gray-500">「〜したら → 学びを書く」を自由に設定</label>
-            <input
-              type="text"
-              placeholder="例: 通勤電車に乗ったら"
-              value={customTrigger}
-              onChange={(event) => {
-                setCustomTrigger(event.target.value);
-                setSelectedPreset("custom");
-              }}
-              className="mt-3 w-full rounded-xl border border-gray-200 px-4 py-3 text-base text-gray-900 focus:border-blue-400 focus:outline-none"
-            />
-          </div>
+          <input
+            type="text"
+            placeholder="例: 通勤電車に乗ったら"
+            value={customTrigger}
+            onChange={(event) => {
+              setCustomTrigger(event.target.value);
+              setSelectedPreset("custom");
+            }}
+            className="w-full rounded-xl border border-gray-200 px-4 py-3 text-base text-gray-900 focus:border-blue-400 focus:outline-none"
+          />
         </section>
 
         {selectedLabel && (

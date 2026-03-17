@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { AppHeader } from "../components/AppHeader";
+import { useScrollToTop } from "../hooks/useScrollToTop";
 
 type Question = {
   id: string;
@@ -64,6 +65,7 @@ const positiveValues = new Set(["yes", "good"]);
 export function ReviewPage() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
+  useScrollToTop();
 
   const isComplete = currentIndex >= questions.length;
 

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowDown } from "lucide-react";
 import { AppHeader } from "../components/AppHeader";
+import { useScrollToTop } from "../hooks/useScrollToTop";
 
 type BreathingStep = {
   label: "吸う" | "止める" | "吐く";
@@ -69,6 +70,7 @@ export function ResetPage() {
   const [hasPromptedScroll, setHasPromptedScroll] = useState(false);
   const [hasBreathingStarted, setHasBreathingStarted] = useState(false);
   const breathingSectionRef = useRef<HTMLDivElement | null>(null);
+  useScrollToTop();
 
   const handleReturnHome = () => {
     window.location.href = "/";
