@@ -53,5 +53,22 @@ Run `npm i` to install the dependencies.
 4. Clerkダッシュボードの **JWT Templates** で Supabase 向けテンプレートを作成し、`aud` を `supabase` に設定。
 5. `.env.local` に `VITE_SUPABASE_URL` と `VITE_SUPABASE_ANON_KEY` を追記して値を設定。
 
+## Account deletion API (Clerk / Supabase cleanup)
+
+アカウント削除では Supabase のログ／タグ／トリガーデータを消したあと、Clerk の管理 API（Secret Key が必要）からユーザーを削除します。ローカルでテストする際は、Vercel Functions をローカル起動して API を受け付ける必要があります。
+
+1. [Vercel CLI](https://vercel.com/docs/cli) をインストールし、プロジェクトディレクトリで `vercel login` を実行。
+2. 別ターミナルで `npm run dev:api` を実行すると、`http://localhost:3000/api/delete-account` に同じロジックの API が立ち上がります。
+3. `.env.local` に以下の変数を追加して、フロントからローカル API を呼ぶようにします（`CLERK_SECRET_KEY` と `SUPABASE_SERVICE_ROLE_KEY` はサーバー側でのみ使用されます）。
+   ```env
+   CLERK_SECRET_KEY=sk_...
+   VITE_DELETE_ACCOUNT_ENDPOINT=http://localhost:3000/api/delete-account
+   CORS_ALLOW_ORIGIN=http://localhost:5173
+   SUPABASE_SERVICE_ROLE_KEY=...
+   ```
+4. もう一つのターミナルで `npm run dev` を起動し、`/delete` ページで削除をテストします。
+
+本番（Vercel デプロイ）では `VITE_DELETE_ACCOUNT_ENDPOINT` を未設定にしておけば自動で `/api/delete-account` が呼ばれます。`CORS_ALLOW_ORIGIN` には本番ドメイン（例：`https://app.example.com`）を設定してください。
+
 # 1st PRD
 https://chatgpt.com/share/69a299ea-b634-800e-9dc3-601f923990d1

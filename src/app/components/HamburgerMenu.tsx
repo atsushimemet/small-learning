@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router";
-import { Menu, X, Wind, NotepadText, Repeat } from "lucide-react";
+import { Menu, X, Wind, NotepadText, Repeat, Trash2 } from "lucide-react";
 
 export function HamburgerMenu() {
     const [open, setOpen] = useState(false);
@@ -67,6 +67,13 @@ export function HamburgerMenu() {
                     >
                         <Repeat className="size-4 text-purple-500" />
                         <span className="font-medium text-gray-900">習慣トリガーを決める</span>
+                    </Link>
+                    <Link
+                        to="/delete"
+                        className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm text-red-600 transition hover:bg-red-50"
+                    >
+                        <Trash2 className="size-4 text-red-500" />
+                        <span className="font-medium text-red-600">削除ページ</span>
                     </Link>
                 </div>
             )}
