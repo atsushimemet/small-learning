@@ -134,16 +134,15 @@ export function Search() {
   return (
     <div className="min-h-screen bg-white pb-20">
       <AppHeader className="sticky top-0 z-40 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80" />
-      <div className="max-w-2xl mx-auto px-4 py-8">
-        <div className="mb-8 space-y-3">
+      <div className="max-w-2xl mx-auto px-4 py-4">
+        <div className="mb-4 space-y-2">
           <div className="flex flex-wrap items-center gap-2 text-base text-gray-900">
             <SearchIcon className="size-4 text-blue-600" />
             <span className="font-semibold">検索</span>
-            <span className="text-gray-500">過去の学習ログを検索</span>
           </div>
         </div>
 
-        <div className="mb-4">
+        <div className="mb-3">
           <div className="relative">
             <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 size-4 text-gray-400" />
             <Input

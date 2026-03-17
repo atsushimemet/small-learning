@@ -111,12 +111,11 @@ export function MonthlyStats() {
   return (
     <div className="min-h-screen bg-white pb-20">
       <AppHeader className="sticky top-0 z-40 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80" />
-      <div className="max-w-2xl mx-auto px-4 py-8">
-        <div className="mb-8 space-y-3">
+      <div className="max-w-2xl mx-auto px-4 py-4">
+        <div className="mb-4 space-y-2">
           <div className="flex flex-wrap items-center gap-2 text-base text-gray-900">
             <BarChart3 className="size-4 text-blue-600" />
             <span className="font-semibold">月次レポート</span>
-            <span className="text-gray-500">学習の進捗を可視化</span>
           </div>
         </div>
 

@@ -22,8 +22,8 @@ export function Home() {
   return (
     <div className="min-h-screen bg-white pb-20">
       <AppHeader className="sticky top-0 z-40 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80" />
-      <div className="max-w-2xl mx-auto px-4 py-8">
-        <p className="mb-8 text-base text-gray-600">今日の学びを1分で記録</p>
+      <div className="max-w-2xl mx-auto px-4 py-4">
+        <p className="mb-4 text-sm text-gray-600">今日の学びを1分で記録</p>
 
         <div className="space-y-6">
           <QuickInput onLogAdded={loadLogs} />
