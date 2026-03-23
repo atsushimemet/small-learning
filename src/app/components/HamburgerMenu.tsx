@@ -73,7 +73,7 @@ export function HamburgerMenu() {
                         className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm text-gray-700 transition hover:bg-gray-50"
                     >
                         <SunMedium className="size-4 text-amber-500" />
-                        <span className="font-medium text-gray-900">1日の意識を整える</span>
+                        <span className="font-medium text-gray-900">今日の目標を決める</span>
                     </Link>
                     <Link
                         to="/delete"
