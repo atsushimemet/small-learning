@@ -30,6 +30,14 @@ export interface MonthlyStats {
   logs: LearningLog[];
 }
 
+export interface DailyGoal {
+  id: string;
+  date: string;
+  doGoal: string;
+  notGoal: string;
+  createdAt: string;
+}
+
 interface LearningLogRow {
   id: string;
   user_id: string;
@@ -37,6 +45,15 @@ interface LearningLogRow {
   content: string;
   summary: string | null;
   tags: Tag[] | null;
+  created_at: string;
+}
+
+interface DailyGoalRow {
+  id: string;
+  user_id: string;
+  date: string;
+  do_goal: string | null;
+  not_goal: string | null;
   created_at: string;
 }
 
@@ -65,6 +82,14 @@ const mapRowToLog = (row: LearningLogRow): LearningLog => ({
   content: row.content,
   summary: row.summary ?? "",
   tags: row.tags ?? [],
+  createdAt: row.created_at,
+});
+
+const mapRowToDailyGoal = (row: DailyGoalRow): DailyGoal => ({
+  id: row.id,
+  date: row.date,
+  doGoal: row.do_goal ?? "",
+  notGoal: row.not_goal ?? "",
   createdAt: row.created_at,
 });
 
@@ -346,6 +371,43 @@ const createService = ({ getToken, userId }: ServiceOptions) => {
     };
   };
 
+  const getDailyGoalForDate = async (date: string): Promise<DailyGoal | null> => {
+    const { supabase, userId } = await ensureAuth();
+    const { data, error } = await supabase
+      .from("dailygoal")
+      .select("*")
+      .eq("user_id", userId)
+      .eq("date", date)
+      .maybeSingle();
+
+    if (error) throw error;
+    if (!data) return null;
+    return mapRowToDailyGoal(data as DailyGoalRow);
+  };
+
+  const saveDailyGoal = async ({
+    date,
+    doGoal,
+    notGoal,
+  }: {
+    date: string;
+    doGoal: string;
+    notGoal: string;
+  }) => {
+    const { supabase, userId } = await ensureAuth();
+    const payload = {
+      user_id: userId,
+      date,
+      do_goal: doGoal || null,
+      not_goal: notGoal || null,
+    };
+    const { error } = await supabase
+      .from("dailygoal")
+      .upsert(payload, { onConflict: "user_id,date" });
+
+    if (error) throw error;
+  };
+
   return {
     getAllLogs,
     addLog,
@@ -359,6 +421,8 @@ const createService = ({ getToken, userId }: ServiceOptions) => {
     getLogsForDate,
     saveLearningTrigger,
     getLearningTrigger,
+    getDailyGoalForDate,
+    saveDailyGoal,
   };
 };
 
@@ -401,6 +465,7 @@ const generateId = () => {
 export const createGuestLearningLogService = (): LearningLogService => {
   let logs: LearningLog[] = [];
   const customTags = new Set<Tag>();
+  const dailyGoals = new Map<string, DailyGoal>();
 
   const cloneLogs = (source: LearningLog[]) =>
     source.map((log) => ({ ...log, tags: [...log.tags] }));
@@ -557,6 +622,31 @@ export const createGuestLearningLogService = (): LearningLogService => {
 
   const getLearningTrigger = async () => null;
 
+  const getDailyGoalForDate = async (date: string) => {
+    const goal = dailyGoals.get(date);
+    return goal ? { ...goal } : null;
+  };
+
+  const saveDailyGoal = async ({
+    date,
+    doGoal,
+    notGoal,
+  }: {
+    date: string;
+    doGoal: string;
+    notGoal: string;
+  }) => {
+    const existing = dailyGoals.get(date);
+    const entry: DailyGoal = {
+      id: existing?.id ?? generateId(),
+      date,
+      doGoal,
+      notGoal,
+      createdAt: new Date().toISOString(),
+    };
+    dailyGoals.set(date, entry);
+  };
+
   return {
     getAllLogs,
     addLog,
@@ -570,5 +660,7 @@ export const createGuestLearningLogService = (): LearningLogService => {
     getLogsForDate,
     saveLearningTrigger,
     getLearningTrigger,
+    getDailyGoalForDate,
+    saveDailyGoal,
   };
 };

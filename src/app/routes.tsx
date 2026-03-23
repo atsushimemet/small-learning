@@ -11,10 +11,19 @@ import { ResetPage } from "./pages/ResetPage";
 import { ReviewPage } from "./pages/ReviewPage";
 import { IfThenPage } from "./pages/IfThenPage";
 import { DeleteAccountPage } from "./pages/DeleteAccountPage";
+import { DailyGoalPage } from "./pages/DailyGoalPage";
 
 export const router = createBrowserRouter([
   {
     path: "/",
+    element: (
+      <ProtectedRoute>
+        <Home />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/home",
     element: (
       <ProtectedRoute>
         <Home />
@@ -64,6 +73,14 @@ export const router = createBrowserRouter([
   {
     path: "/ifthen",
     element: <IfThenPage />,
+  },
+  {
+    path: "/dailygoal",
+    element: (
+      <ProtectedRoute>
+        <DailyGoalPage />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/delete",
