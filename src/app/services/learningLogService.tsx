@@ -38,6 +38,14 @@ export interface DailyGoal {
   createdAt: string;
 }
 
+export interface JournalEntry {
+  id: string;
+  date: string;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 interface LearningLogRow {
   id: string;
   user_id: string;
@@ -55,6 +63,15 @@ interface DailyGoalRow {
   do_goal: string | null;
   not_goal: string | null;
   created_at: string;
+}
+
+interface JournalEntryRow {
+  id: string;
+  user_id: string;
+  date: string;
+  content: string;
+  created_at: string;
+  updated_at: string;
 }
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -91,6 +108,14 @@ const mapRowToDailyGoal = (row: DailyGoalRow): DailyGoal => ({
   doGoal: row.do_goal ?? "",
   notGoal: row.not_goal ?? "",
   createdAt: row.created_at,
+});
+
+const mapRowToJournalEntry = (row: JournalEntryRow): JournalEntry => ({
+  id: row.id,
+  date: row.date,
+  content: row.content,
+  createdAt: row.created_at,
+  updatedAt: row.updated_at,
 });
 
 interface ServiceOptions {
@@ -408,6 +433,40 @@ const createService = ({ getToken, userId }: ServiceOptions) => {
     if (error) throw error;
   };
 
+  const getJournalEntryForDate = async (date: string): Promise<JournalEntry | null> => {
+    const { supabase, userId } = await ensureAuth();
+    const { data, error } = await supabase
+      .from("journal_entries")
+      .select("*")
+      .eq("user_id", userId)
+      .eq("date", date)
+      .maybeSingle();
+
+    if (error) throw error;
+    if (!data) return null;
+    return mapRowToJournalEntry(data as JournalEntryRow);
+  };
+
+  const saveJournalEntry = async ({
+    date,
+    content,
+  }: {
+    date: string;
+    content: string;
+  }) => {
+    const { supabase, userId } = await ensureAuth();
+    const payload = {
+      user_id: userId,
+      date,
+      content,
+    };
+    const { error } = await supabase
+      .from("journal_entries")
+      .upsert(payload, { onConflict: "user_id,date" });
+
+    if (error) throw error;
+  };
+
   return {
     getAllLogs,
     addLog,
@@ -423,6 +482,8 @@ const createService = ({ getToken, userId }: ServiceOptions) => {
     getLearningTrigger,
     getDailyGoalForDate,
     saveDailyGoal,
+    getJournalEntryForDate,
+    saveJournalEntry,
   };
 };
 
@@ -466,6 +527,7 @@ export const createGuestLearningLogService = (): LearningLogService => {
   let logs: LearningLog[] = [];
   const customTags = new Set<Tag>();
   const dailyGoals = new Map<string, DailyGoal>();
+  const journalEntries = new Map<string, JournalEntry>();
 
   const cloneLogs = (source: LearningLog[]) =>
     source.map((log) => ({ ...log, tags: [...log.tags] }));
@@ -647,6 +709,29 @@ export const createGuestLearningLogService = (): LearningLogService => {
     dailyGoals.set(date, entry);
   };
 
+  const getJournalEntryForDate = async (date: string) => {
+    const entry = journalEntries.get(date);
+    return entry ? { ...entry } : null;
+  };
+
+  const saveJournalEntry = async ({
+    date,
+    content,
+  }: {
+    date: string;
+    content: string;
+  }) => {
+    const existing = journalEntries.get(date);
+    const entry: JournalEntry = {
+      id: existing?.id ?? generateId(),
+      date,
+      content,
+      createdAt: existing?.createdAt ?? new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    journalEntries.set(date, entry);
+  };
+
   return {
     getAllLogs,
     addLog,
@@ -662,5 +747,7 @@ export const createGuestLearningLogService = (): LearningLogService => {
     getLearningTrigger,
     getDailyGoalForDate,
     saveDailyGoal,
+    getJournalEntryForDate,
+    saveJournalEntry,
   };
 };
