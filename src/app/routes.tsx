@@ -12,6 +12,7 @@ import { ReviewPage } from "./pages/ReviewPage";
 import { IfThenPage } from "./pages/IfThenPage";
 import { DeleteAccountPage } from "./pages/DeleteAccountPage";
 import { DailyGoalPage } from "./pages/DailyGoalPage";
+import { JournalPage } from "./pages/JournalPage";
 
 export const router = createBrowserRouter([
   {
@@ -79,6 +80,14 @@ export const router = createBrowserRouter([
     element: (
       <ProtectedRoute>
         <DailyGoalPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/journal",
+    element: (
+      <ProtectedRoute>
+        <JournalPage />
       </ProtectedRoute>
     ),
   },
