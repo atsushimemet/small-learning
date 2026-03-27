@@ -1,9 +1,19 @@
+import { useEffect } from "react";
 import { Link } from "react-router";
 import { ArrowRight } from "lucide-react";
 import { useScrollToTop } from "../hooks/useScrollToTop";
+import { getPageMetadata, sendGtagEvent } from "../../utils/gtag";
+import { setFlow } from "../../utils/flowTracking";
 
 export function LandingPage() {
   useScrollToTop();
+  useEffect(() => {
+    setFlow("lp");
+    sendGtagEvent("lp_view", {
+      ...getPageMetadata(),
+      page_path: "/lp",
+    });
+  }, []);
   return (
     <div className="flex min-h-screen flex-col bg-white text-gray-900">
       <main className="flex flex-1 items-center justify-center px-4 py-16 sm:px-6 sm:py-24">
