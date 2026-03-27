@@ -10,6 +10,8 @@ import {
   type LearningLog,
 } from "../services/learningLogService";
 import { useScrollToTop } from "../hooks/useScrollToTop";
+import { getPageMetadata, sendGtagEvent } from "../../utils/gtag";
+import { setFlow } from "../../utils/flowTracking";
 
 function TrialExperienceContent() {
   const [logs, setLogs] = useState<LearningLog[]>([]);
@@ -85,6 +87,13 @@ function TrialExperienceContent() {
 export function TrialExperience() {
   const guestService = useMemo(() => createGuestLearningLogService(), []);
   useScrollToTop();
+  useEffect(() => {
+    setFlow("lp_trial");
+    sendGtagEvent("trial_view", {
+      ...getPageMetadata(),
+      page_path: "/trial",
+    });
+  }, []);
 
   return (
     <LearningLogServiceProvider service={guestService}>
