@@ -1,7 +1,7 @@
 import { FormEvent, KeyboardEvent, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { AppHeader } from "../components/AppHeader";
-import { useLearningLogService } from "../services/learningLogService";
+import { useLearningLogService, type JournalEntry } from "../services/learningLogService";
 
 const formatDate = (date: Date) => {
   const year = date.getFullYear();
@@ -15,9 +15,17 @@ export function JournalPage() {
   const [content, setContent] = useState("");
   const [saving, setSaving] = useState(false);
   const [hasLoaded, setHasLoaded] = useState(false);
+  const [yesterdayEntry, setYesterdayEntry] = useState<JournalEntry | null>(null);
+  const [yesterdayError, setYesterdayError] = useState<string | null>(null);
+  const [loadingYesterday, setLoadingYesterday] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const today = useMemo(() => formatDate(new Date()), []);
+  const yesterday = useMemo(() => {
+    const date = new Date();
+    date.setDate(date.getDate() - 1);
+    return formatDate(date);
+  }, []);
 
   useEffect(() => {
     textareaRef.current?.focus();
@@ -26,28 +34,41 @@ export function JournalPage() {
   useEffect(() => {
     if (!service || hasLoaded) return;
     let ignore = false;
+    setLoadingYesterday(true);
+    setYesterdayError(null);
     (async () => {
       try {
-        const entry = await service.getJournalEntryForDate(today);
-        if (entry && !ignore) {
-          setContent(entry.content);
+        const [todayEntry, previousEntry] = await Promise.all([
+          service.getJournalEntryForDate(today),
+          service.getJournalEntryForDate(yesterday),
+        ]);
+        if (!ignore) {
+          if (todayEntry) {
+            setContent(todayEntry.content);
+          }
+          setYesterdayEntry(previousEntry);
         }
       } catch (error) {
         console.error("Failed to load journal entry", error);
+        if (!ignore) {
+          setYesterdayError("昨日の記録を取得できませんでした");
+        }
       } finally {
         if (!ignore) {
           setHasLoaded(true);
+          setLoadingYesterday(false);
         }
       }
     })();
     return () => {
       ignore = true;
     };
-  }, [service, today, hasLoaded]);
+  }, [service, today, yesterday, hasLoaded]);
 
   const remaining = Math.max(0, 140 - content.length);
   const trimmedContent = content.trim();
   const canSave = Boolean(trimmedContent && service && !saving);
+  const yesterdayContent = yesterdayEntry ? yesterdayEntry.content.trim() : "";
 
   const saveEntry = async () => {
     if (!canSave || !service) return;
@@ -93,6 +114,24 @@ export function JournalPage() {
             <p className="text-base text-gray-600">
               昨日あるいは今日よかったことを一つ、静かに言葉にしてみてください。
             </p>
+          </div>
+          <div className="rounded-3xl border border-gray-100 bg-gray-50 px-5 py-4 text-left">
+            <p className="text-xs font-semibold tracking-wide text-gray-500">昨日の日記</p>
+            {loadingYesterday ? (
+              <div className="mt-3 space-y-2">
+                <div className="h-4 w-3/4 animate-pulse rounded bg-gray-200" />
+                <div className="h-4 w-2/3 animate-pulse rounded bg-gray-200" />
+                <div className="h-4 w-1/2 animate-pulse rounded bg-gray-200" />
+              </div>
+            ) : yesterdayError ? (
+              <p className="mt-3 text-sm text-gray-500">{yesterdayError}</p>
+            ) : yesterdayContent ? (
+              <p className="mt-3 whitespace-pre-line text-base leading-relaxed text-gray-900">
+                {yesterdayContent}
+              </p>
+            ) : (
+              <p className="mt-3 text-sm text-gray-500">昨日の記録はありません。</p>
+            )}
           </div>
           <div className="relative w-full">
             <textarea
