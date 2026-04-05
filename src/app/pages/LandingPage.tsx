@@ -21,18 +21,18 @@ export function LandingPage() {
           <p className="text-sm font-semibold uppercase tracking-[0.3em] text-blue-500">ちいさな学び</p>
           <div className="space-y-6">
             <h1 className="text-4xl font-semibold leading-tight sm:text-5xl">
-              忙しい日でも
+              1分の学習メモで
               <br />
-              1分で学習を続ける
+              バーンアウトから復活
             </h1>
             <p className="text-base leading-relaxed text-gray-600 sm:text-lg">
-              PM・デザイナー・マーケターのための
+              疲れてしまったPMが、1分の学習メモで
               <br />
-              1分アウトプット学習。
+              自信を取り戻すための場所です。
             </p>
           </div>
           <div className="flex flex-wrap justify-center gap-2 text-xs text-gray-500">
-            {["AI", "プロダクト", "UX", "マーケティング"].map((topic) => (
+            {["PM", "リーダー", "バーンアウト", "回復"].map((topic) => (
               <span key={topic} className="rounded-full border border-gray-200 px-3 py-1">
                 {topic}
               </span>
@@ -54,8 +54,8 @@ export function LandingPage() {
             </Link>
           </div>
           <div className="space-y-1 text-sm text-gray-500">
-            <p>毎日1分のアウトプットで学習習慣を作る</p>
-            <p className="text-xs text-gray-400">登録不要 / 1分で体験</p>
+            <p>毎日1分の学習メモで自己肯定感を積み直す</p>
+            <p className="text-xs text-gray-400">体験なら登録不要</p>
           </div>
         </div>
       </main>
