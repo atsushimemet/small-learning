@@ -75,15 +75,15 @@ interface JournalEntryRow {
 }
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabasePublishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
 const SUPABASE_JWT_TEMPLATE = "supabase";
 
 const getSupabaseConfig = () => {
-  if (!supabaseUrl || !supabaseAnonKey) {
+  if (!supabaseUrl || !supabasePublishableKey) {
     throw new Error("Supabase environment variables are not configured");
   }
-  return { supabaseUrl, supabaseAnonKey } as const;
+  return { supabaseUrl, supabasePublishableKey } as const;
 };
 
 const formatDate = (date: Date): string => {
@@ -129,8 +129,9 @@ const createService = ({ getToken, userId }: ServiceOptions) => {
     if (!token) {
       throw new Error("Supabase access token could not be retrieved");
     }
-    const { supabaseUrl: url, supabaseAnonKey: anonKey } = getSupabaseConfig();
-    const supabase = createClient(url, anonKey, {
+    const { supabaseUrl: url, supabasePublishableKey: publishableKey } =
+      getSupabaseConfig();
+    const supabase = createClient(url, publishableKey, {
       auth: { persistSession: false },
       global: {
         headers: {
