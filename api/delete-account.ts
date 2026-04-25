@@ -1,5 +1,7 @@
 import { createClerkClient, verifyToken } from "@clerk/backend";
 import { createClient } from "@supabase/supabase-js";
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 
 type Json =
   | null
@@ -47,8 +49,26 @@ const getBearerToken = (req: any) => {
   return token;
 };
 
+const readLocalEnvValue = (key: string) => {
+  for (const filename of [".env.local", ".env"]) {
+    const filePath = join(process.cwd(), filename);
+    if (!existsSync(filePath)) continue;
+
+    const lines = readFileSync(filePath, "utf8").split(/\r?\n/);
+    for (const line of lines) {
+      const match = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)\s*$/);
+      if (!match || match[1] !== key) continue;
+
+      const value = match[2].trim().replace(/^(['"])(.*)\1$/, "$2");
+      return value || undefined;
+    }
+  }
+
+  return undefined;
+};
+
 const requireEnv = (key: string) => {
-  const value = process.env[key];
+  const value = process.env[key] ?? readLocalEnvValue(key);
   if (!value) throw new Error(`Missing environment variable: ${key}`);
   return value;
 };
@@ -83,8 +103,8 @@ export default async function handler(req: any, res: any) {
     }
 
     const supabaseUrl = requireEnv("VITE_SUPABASE_URL");
-    const serviceRoleKey = requireEnv("SUPABASE_SERVICE_ROLE_KEY");
-    const supabase = createClient(supabaseUrl, serviceRoleKey, {
+    const supabaseSecretKey = requireEnv("SUPABASE_SECRET_KEY");
+    const supabase = createClient(supabaseUrl, supabaseSecretKey, {
       auth: {
         persistSession: false,
         autoRefreshToken: false,

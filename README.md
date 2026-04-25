@@ -18,7 +18,7 @@ Run `npm i` to install the dependencies.
 
 ## Supabase setup
 
-1. Create a Supabase project and note the Project URLと `anon` API key (Settings → API)。
+1. Create a Supabase project and note the Project URL と publishable key (Settings → API)。
 2. SQL editorで以下のDDLとRLSポリシーを実行し、`learning_logs` テーブルを作成:
  ```sql
  create table if not exists public.learning_logs (
@@ -54,7 +54,7 @@ Run `npm i` to install the dependencies.
    with check ((auth.jwt()->>'sub') = user_id);
  ```
 4. Clerkダッシュボードの **JWT Templates** で Supabase 向けテンプレートを作成し、`aud` を `supabase` に設定。
-5. `.env.local` に `VITE_SUPABASE_URL` と `VITE_SUPABASE_ANON_KEY` を追記して値を設定。
+5. `.env.local` に `VITE_SUPABASE_URL` と `VITE_SUPABASE_PUBLISHABLE_KEY` を追記して値を設定。
 
 ## Account deletion API (Clerk / Supabase cleanup)
 
@@ -62,12 +62,12 @@ Run `npm i` to install the dependencies.
 
 1. [Vercel CLI](https://vercel.com/docs/cli) をインストールし、プロジェクトディレクトリで `vercel login` を実行。
 2. 別ターミナルで `npm run dev:api` を実行すると、`http://localhost:3000/api/delete-account` に同じロジックの API が立ち上がります。
-3. `.env.local` に以下の変数を追加して、フロントからローカル API を呼ぶようにします（`CLERK_SECRET_KEY` と `SUPABASE_SERVICE_ROLE_KEY` はサーバー側でのみ使用されます）。
+3. `.env.local` に以下の変数を追加して、フロントからローカル API を呼ぶようにします（`CLERK_SECRET_KEY` と `SUPABASE_SECRET_KEY` はサーバー側でのみ使用されます）。
  ```env
  CLERK_SECRET_KEY=sk_...
  VITE_DELETE_ACCOUNT_ENDPOINT=http://localhost:3000/api/delete-account
  CORS_ALLOW_ORIGIN=http://localhost:5173
- SUPABASE_SERVICE_ROLE_KEY=...
+ SUPABASE_SECRET_KEY=sb_secret_...
  ```
 4. もう一つのターミナルで `npm run dev` を起動し、`/delete` ページで削除をテストします。
 
